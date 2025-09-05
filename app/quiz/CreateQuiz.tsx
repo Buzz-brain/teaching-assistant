@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -20,7 +20,13 @@ const CreateQuizScreen = () => {
   const [quizTitle, setQuizTitle] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [duration, setDuration] = useState("30");
-  const [questions, setQuestions] = useState([]);
+  type QuestionType = {
+    id: string;
+    question: string;
+    options: string[];
+    correctAnswer: number;
+  };
+  const [questions, setQuestions] = useState<QuestionType[]>([]);
   const [questionText, setQuestionText] = useState("");
   const [optionA, setOptionA] = useState("");
   const [optionB, setOptionB] = useState("");
@@ -69,10 +75,10 @@ const CreateQuizScreen = () => {
       return;
     }
 
-    const newQuestion = {
+    const newQuestion: QuestionType = {
       id: Date.now().toString(),
       question: questionText,
-      options: [optionA, optionB, optionC, optionD].filter((opt) => opt.trim()),
+      options: [optionA, optionB, optionC, optionD].filter((opt: string) => opt.trim()),
       correctAnswer: correctAnswer,
     };
 
@@ -86,8 +92,8 @@ const CreateQuizScreen = () => {
     Alert.alert("Success", "Question added successfully!");
   };
 
-  const deleteQuestion = (id) => {
-    setQuestions(questions.filter((q) => q.id !== id));
+  const deleteQuestion = (id: string) => {
+    setQuestions(questions.filter((q: QuestionType) => q.id !== id));
   };
 
   // In your publishQuiz function, update the quizData object:
@@ -207,7 +213,7 @@ const CreateQuizScreen = () => {
               <Text className="text-lg font-semibold text-gray-800 mb-3">
                 Added Questions ({questions.length})
               </Text>
-              {questions.map((q, index) => (
+              {questions.map((q: QuestionType, index: number) => (
                 <View
                   key={q.id}
                   className="border-l-4 border-blue-500 bg-blue-50 p-3 mb-3 rounded"
@@ -226,7 +232,7 @@ const CreateQuizScreen = () => {
                   <Text className="text-sm text-gray-800 mb-2">
                     {q.question}
                   </Text>
-                  {q.options.map((option, optIndex) => (
+                  {q.options.map((option: string, optIndex: number) => (
                     <Text
                       key={optIndex}
                       className={`text-xs ml-2 ${

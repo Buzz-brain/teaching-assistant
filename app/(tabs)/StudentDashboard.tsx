@@ -15,7 +15,27 @@ import StatCard from "../../components/StatCard"; // Using your existing StatCar
 import { account, databases } from "../../utils/appwrite-config";
 
 // QuizCard Component
-const QuizCard = ({ quiz, onPress }) => (
+type QuizType = {
+  id: string;
+  title: string;
+  course: string;
+  duration: number;
+  questionCount: number;
+  createdAt: string;
+  completedAt?: string;
+  status: string;
+  score: number;
+  correctAnswers: number;
+  totalQuestions: number;
+  questions: any[];
+};
+
+type QuizCardProps = {
+  quiz: QuizType;
+  onPress: () => void;
+};
+
+const QuizCard: React.FC<QuizCardProps> = ({ quiz, onPress }) => (
   <TouchableOpacity
     className="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100"
     onPress={onPress}
@@ -39,7 +59,7 @@ const QuizCard = ({ quiz, onPress }) => (
     {quiz.status === "completed" ? (
       <View className="flex-row items-center justify-between">
         <Text className="text-sm text-gray-500">
-          Completed: {new Date(quiz.completedAt).toLocaleDateString()}
+          Completed: {quiz.completedAt ? new Date(quiz.completedAt).toLocaleDateString() : "N/A"}
         </Text>
         <Text className="font-semibold text-green-600">
           {quiz.score}% ({quiz.correctAnswers}/{quiz.totalQuestions})
@@ -71,7 +91,7 @@ const StudentDashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState("");
   const [userInitial, setUserInitial] = useState("U");
-  const [quizzes, setQuizzes] = useState([]);
+  const [quizzes, setQuizzes] = useState<QuizType[]>([]);
   const [stats, setStats] = useState({
     completedQuizzes: 0,
     averageScore: 0,
@@ -98,7 +118,7 @@ const StudentDashboard = () => {
         ]
       );
 
-      const formattedQuizzes = response.documents.map((quiz) => {
+      const formattedQuizzes = response.documents.map((quiz: any): QuizType => {
         const questions = JSON.parse(quiz.questions || "[]");
         return {
           id: quiz.$id,
@@ -120,18 +140,18 @@ const StudentDashboard = () => {
 
       // Calculate stats from real data
       const completed = formattedQuizzes.filter(
-        (q) => q.status === "completed"
+        (q: QuizType) => q.status === "completed"
       );
-      const pending = formattedQuizzes.filter((q) => q.status === "pending");
+      const pending = formattedQuizzes.filter((q: QuizType) => q.status === "pending");
       const inProgress = formattedQuizzes.filter(
-        (q) => q.status === "in_progress"
+        (q: QuizType) => q.status === "in_progress"
       );
 
       // Calculate average score from completed quizzes
       const avgScore =
         completed.length > 0
           ? Math.round(
-              completed.reduce((sum, quiz) => sum + quiz.score, 0) /
+              completed.reduce((sum: number, quiz: QuizType) => sum + quiz.score, 0) /
                 completed.length
             )
           : 0;
@@ -166,7 +186,7 @@ const StudentDashboard = () => {
     setRefreshing(false);
   };
 
-  const handleQuizPress = (quiz) => {
+  const handleQuizPress = (quiz: QuizType) => {
     // Navigate to the quiz taking screen
     router.push({
       pathname: "/quiz/WriteQuiz",

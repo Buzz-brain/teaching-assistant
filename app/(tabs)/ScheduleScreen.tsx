@@ -3,7 +3,7 @@ import { Feather as Icon } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Query } from "appwrite";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -15,7 +15,23 @@ import {
 const ScheduleScreen = () => {
   const router = useRouter();
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [schedules, setSchedules] = useState([]);
+  type ClassType = {
+    day: string;
+    subject: string;
+    location: string;
+    type: string;
+    time: string;
+    students: number;
+  };
+  type ScheduleType = {
+    id: string;
+    name: string;
+    teacherId: string;
+    isActive: boolean;
+    weekSchedule: ClassType[];
+    createdAt: string;
+  };
+  const [schedules, setSchedules] = useState<ScheduleType[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -40,7 +56,7 @@ const ScheduleScreen = () => {
         ]
       );
 
-      const formattedSchedules = response.documents.map((schedule) => ({
+      const formattedSchedules = response.documents.map((schedule: any): ScheduleType => ({
         id: schedule.$id,
         name: schedule.name,
         teacherId: schedule.teacherId,
@@ -111,7 +127,7 @@ const ScheduleScreen = () => {
               </Text>
             </View>
           ) : (
-            schedules.map((schedule) => (
+            schedules.map((schedule: ScheduleType) => (
               <View
                 key={schedule.id}
                 className="bg-white rounded-2xl p-6 mb-4 shadow-sm border border-gray-100"
@@ -122,7 +138,7 @@ const ScheduleScreen = () => {
                 <Text className="text-gray-600 mb-2">
                   Created: {new Date(schedule.createdAt).toLocaleDateString()}
                 </Text>
-                {schedule.weekSchedule.map((cls, index) => (
+                {schedule.weekSchedule.map((cls: ClassType, index: number) => (
                   <View
                     key={index}
                     className="border-t border-gray-200 pt-2 mt-2"

@@ -3,7 +3,7 @@ import { Feather as Icon, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Query } from "appwrite";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -34,7 +34,16 @@ const HomeScreen = () => {
     responseTime: "N/A",
   });
 
-  const [todaysClasses, setTodaysClasses] = useState([]);
+  type ClassType = {
+    id: string;
+    subject: string;
+    location: string;
+    time: string;
+    students: any;
+    type: string;
+    scheduleName: string;
+  };
+  const [todaysClasses, setTodaysClasses] = useState<ClassType[]>([]);
 
   const checkAuthAndFetchData = async () => {
     try {
@@ -64,19 +73,19 @@ const HomeScreen = () => {
 
       // Count pending quizzes
       const pendingQuizzes = quizResponse.documents.filter(
-        (quiz) => quiz.status === "pending"
+        (quiz: any) => quiz.status === "pending"
       );
 
       // Get completed quizzes with scores
       const completedQuizzes = quizResponse.documents.filter(
-        (quiz) => quiz.status === "completed" && quiz.score !== undefined
+        (quiz: any) => quiz.status === "completed" && quiz.score !== undefined
       );
 
       // Calculate average grade across all completed quizzes
       let averageGrade = 0;
       if (completedQuizzes.length > 0) {
         const totalScore = completedQuizzes.reduce(
-          (sum, quiz) => sum + (quiz.score || 0),
+          (sum: number, quiz: any) => sum + (quiz.score || 0),
           0
         );
         averageGrade = Math.round(totalScore / completedQuizzes.length);
@@ -92,17 +101,18 @@ const HomeScreen = () => {
       // Calculate response time (average time between quiz creation and first completion)
       let avgResponseTime = "N/A";
       if (completedQuizzes.length > 0) {
+
         const responseTimes = completedQuizzes
-          .filter((quiz) => quiz.createdAt && quiz.completedAt)
-          .map((quiz) => {
+          .filter((quiz: any) => quiz.createdAt && quiz.completedAt)
+          .map((quiz: { createdAt: string; completedAt: string }) => {
             const created = new Date(quiz.createdAt);
             const completed = new Date(quiz.completedAt);
-            return Math.abs(completed - created) / (1000 * 60); // minutes
+            return Math.abs(completed.getTime() - created.getTime()) / (1000 * 60); // minutes
           });
 
         if (responseTimes.length > 0) {
           const avgMinutes =
-            responseTimes.reduce((sum, time) => sum + time, 0) /
+            responseTimes.reduce((sum: number, time: number) => sum + time, 0) /
             responseTimes.length;
           if (avgMinutes < 60) {
             avgResponseTime = `${Math.round(avgMinutes)}m`;
@@ -125,7 +135,7 @@ const HomeScreen = () => {
       if (storedUserId) {
         await fetchTodaysClasses(storedUserId);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching teacher data:", error);
       // If there's an authentication error, clear storage and set unauthenticated
       if (error.code === 401 || error.message?.includes("missing scope")) {
@@ -145,7 +155,7 @@ const HomeScreen = () => {
     }
   };
 
-  const fetchTodaysClasses = async (teacherId) => {
+  const fetchTodaysClasses = async (teacherId: string) => {
     try {
       // Get current day name
       const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
@@ -158,14 +168,14 @@ const HomeScreen = () => {
       );
 
       // Extract today's classes from all schedules
-      const todaysClassesData = [];
+      const todaysClassesData: any[] = [];
 
-      schedulesResponse.documents.forEach((schedule) => {
+      schedulesResponse.documents.forEach((schedule: any) => {
         try {
           const weekSchedule = JSON.parse(schedule.weekSchedule || "[]");
-          const todayClasses = weekSchedule.filter((cls) => cls.day === today);
+          const todayClasses = weekSchedule.filter((cls: any) => cls.day === today);
 
-          todayClasses.forEach((cls) => {
+          todayClasses.forEach((cls: any) => {
             todaysClassesData.push({
               id: `${schedule.$id}-${cls.id}`,
               subject: cls.subject,
@@ -188,7 +198,7 @@ const HomeScreen = () => {
       });
 
       setTodaysClasses(todaysClassesData);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching today's classes:", error);
       setTodaysClasses([]);
     }

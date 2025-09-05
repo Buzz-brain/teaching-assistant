@@ -2,7 +2,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -26,7 +26,16 @@ const ScheduleCreateScreen = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [scheduleName, setScheduleName] = useState("");
-  const [classes, setClasses] = useState([]); // Local state for UI
+  type ClassType = {
+    id: string;
+    day: string;
+    subject: string;
+    location: string;
+    type: string;
+    time: string;
+    students: number;
+  };
+  const [classes, setClasses] = useState<ClassType[]>([]); // Local state for UI
   const [classDay, setClassDay] = useState("");
   const [classSubject, setClassSubject] = useState("");
   const [classLocation, setClassLocation] = useState("");
@@ -79,7 +88,7 @@ const ScheduleCreateScreen = () => {
       return;
     }
 
-    const newClass = {
+    const newClass: ClassType = {
       id: Date.now().toString(),
       day: classDay,
       subject: classSubject,
@@ -89,7 +98,7 @@ const ScheduleCreateScreen = () => {
       students: parseInt(classStudents),
     };
 
-    setClasses([...classes, newClass]);
+  setClasses([...classes, newClass]);
     setClassDay("");
     setClassSubject("");
     setClassLocation("");
@@ -99,8 +108,8 @@ const ScheduleCreateScreen = () => {
     Alert.alert("Success", "Class added successfully!");
   };
 
-  const deleteClass = (id) => {
-    setClasses(classes.filter((c) => c.id !== id));
+  const deleteClass = (id: string) => {
+    setClasses(classes.filter((c: ClassType) => c.id !== id));
   };
 
   const publishSchedule = async () => {
@@ -155,7 +164,15 @@ const ScheduleCreateScreen = () => {
       );
     } catch (error) {
       console.error("Publish schedule error:", error);
-      Alert.alert("Error", `Failed to publish schedule: ${error.message}`);
+      let errorMessage = "";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "object" && error !== null && "message" in error) {
+        errorMessage = (error as any).message;
+      } else {
+        errorMessage = String(error);
+      }
+      Alert.alert("Error", `Failed to publish schedule: ${errorMessage}`);
     }
   };
 
@@ -196,7 +213,7 @@ const ScheduleCreateScreen = () => {
               <Text className="text-lg font-semibold text-gray-800 mb-3">
                 Added Classes ({classes.length})
               </Text>
-              {classes.map((c, index) => (
+              {classes.map((c: ClassType, index: number) => (
                 <View
                   key={c.id}
                   className="border-l-4 border-blue-500 bg-blue-50 p-3 mb-3 rounded"

@@ -8,7 +8,20 @@ import { account } from "../../utils/appwrite-config";
 const MoreScreen = () => {
   const router = useRouter();
 
-  const MenuOption = ({ iconName, title, onPress }) => (
+  type FeatherIconName =
+    | "settings"
+    | "help-circle"
+    | "file-text"
+    | "user"
+    | "log-out"
+    | "chevron-right";
+
+  type MenuOptionProps = {
+    iconName: FeatherIconName;
+    title: string;
+    onPress?: () => void;
+  };
+  const MenuOption: React.FC<MenuOptionProps> = ({ iconName, title, onPress }) => (
     <TouchableOpacity
       className="flex-row items-center bg-white mx-4 mb-2 p-4 rounded-lg shadow-sm"
       onPress={onPress}

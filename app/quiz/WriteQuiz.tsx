@@ -1,6 +1,6 @@
 // WriteQuiz.tsx - Updated to store user ID on completion
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Modal,
@@ -16,9 +16,30 @@ const StudentQuizScreen = () => {
   const params = useLocalSearchParams();
 
   const [currentView, setCurrentView] = useState("taking");
-  const [selectedQuiz, setSelectedQuiz] = useState(null);
+  type QuizType = {
+    id: string;
+    title: string;
+    course: string;
+    duration: number;
+    questions: QuestionType[];
+    status: string;
+    score?: number;
+    correctAnswers?: number;
+    totalQuestions?: number;
+  };
+  type QuestionType = {
+    id: string;
+    text: string;
+    options: string[];
+    correctAnswer: number;
+  };
+  type AnswerType = {
+    questionId: string;
+    selectedOption: number;
+  };
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizType | null>(null);
+  const [answers, setAnswers] = useState<AnswerType[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState([]);
   const [timeLeft, setTimeLeft] = useState(0);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -48,7 +69,9 @@ const StudentQuizScreen = () => {
 
         if (params.quizData) {
           // Quiz data passed from QuizScreen
-          const quiz = JSON.parse(params.quizData);
+          const quiz = Array.isArray(params.quizData)
+            ? JSON.parse(params.quizData[0])
+            : JSON.parse(params.quizData as string);
           console.log(
             "Loaded quiz from params:",
             quiz.title,
@@ -75,7 +98,9 @@ const StudentQuizScreen = () => {
               );
               console.log("Updated quiz status from pending to in_progress");
               // Update local state
-              setSelectedQuiz((prev) => ({ ...prev, status: "in_progress" }));
+              setSelectedQuiz((prev) =>
+                prev ? { ...prev, status: "in_progress" } : prev
+              );
             } catch (updateError) {
               console.warn("Failed to update quiz status:", updateError);
             }
@@ -142,7 +167,9 @@ const StudentQuizScreen = () => {
                 }
               );
               console.log("Updated quiz status from pending to in_progress");
-              setSelectedQuiz((prev) => ({ ...prev, status: "in_progress" }));
+              setSelectedQuiz((prev) =>
+                prev ? { ...prev, status: "in_progress" } : prev
+              );
             } catch (updateError) {
               console.warn("Failed to update quiz status:", updateError);
             }
@@ -178,9 +205,9 @@ const StudentQuizScreen = () => {
     }
   }, [timeLeft, currentView, selectedQuiz]);
 
-  const selectAnswer = (questionId, optionIndex) => {
+  const selectAnswer = (questionId: string, optionIndex: number) => {
     const existingAnswerIndex = answers.findIndex(
-      (a) => a.questionId === questionId
+      (a: AnswerType) => a.questionId === questionId
     );
     if (existingAnswerIndex >= 0) {
       const newAnswers = [...answers];
@@ -194,6 +221,7 @@ const StudentQuizScreen = () => {
   const nextQuestion = () => {
     if (
       selectedQuiz &&
+      Array.isArray(selectedQuiz.questions) &&
       currentQuestionIndex < selectedQuiz.questions.length - 1
     ) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -266,14 +294,14 @@ const StudentQuizScreen = () => {
     }
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const getCurrentAnswer = (questionId) => {
-    return answers.find((a) => a.questionId === questionId)?.selectedOption;
+  const getCurrentAnswer = (questionId: string) => {
+    return answers.find((a: AnswerType) => a.questionId === questionId)?.selectedOption;
   };
 
   // Show loading screen
@@ -349,7 +377,7 @@ const StudentQuizScreen = () => {
       {/* Question */}
       <ScrollView className="flex-1 p-4">
         <Text className="text-lg font-medium text-gray-900 mb-6 leading-6">
-          {currentQuestion.question}
+          {currentQuestion.text}
         </Text>
 
         {/* Options */}

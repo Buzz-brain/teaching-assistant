@@ -1,23 +1,25 @@
-import React from "react";
+import { useRouter } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 
-const NotificationsScreen = ({ setCurrentPage }) => (
-  <View className="flex-1 bg-gray-50 px-4 py-6">
-    <View className="flex-row items-center justify-between mb-8">
-      <Text className="text-3xl font-bold text-gray-900">Notifications</Text>
-      <TouchableOpacity onPress={() => setCurrentPage("dashboard")}>
-        <Text className="text-blue-500 font-medium">Back to Dashboard</Text>
-      </TouchableOpacity>
-    </View>
+const NotificationsScreen = () => {
+  const router = useRouter();
+  return (
+    <View className="flex-1 bg-gray-50 px-4 py-6">
+      <View className="flex-row items-center justify-between mb-8">
+        <Text className="text-3xl font-bold text-gray-900">Notifications</Text>
+        <TouchableOpacity onPress={() => router.replace("/")}> 
+          <Text className="text-blue-500 font-medium">Back to Dashboard</Text>
+        </TouchableOpacity>
+      </View>
 
-    <View className="space-y-4">
-      {[
-        {
-          id: 1,
-          title: "New Quiz Available",
-          message: "Calculus Integration quiz is now available",
-          time: "2 hours ago",
-          unread: true,
+      <View className="space-y-4">
+        {[ 
+          {
+            id: 1,
+            title: "New Quiz Available",
+            message: "Calculus Integration quiz is now available",
+            time: "2 hours ago",
+            unread: true,
         },
         {
           id: 2,
@@ -63,6 +65,7 @@ const NotificationsScreen = ({ setCurrentPage }) => (
       ))}
     </View>
   </View>
-);
+  );
+};
 
 export default NotificationsScreen;

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, AppState, View } from "react-native";
 import AuthScreen from "../app/auth/AuthScreen";
 import { account } from "../utils/appwrite-config";

@@ -14,23 +14,47 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { databases } from "../../utils/appwrite-config";
 
 // Available Quiz Card Component
-const AvailableQuizCard = ({ quiz, onPress }) => {
-  const getDifficultyLevel = (questionCount) => {
+type QuizType = {
+  id: string;
+  title: string;
+  course: string;
+  duration: number;
+  questionCount: number;
+  createdAt: string;
+  status: string;
+  questions: any[];
+};
+
+type FeatherIconName =
+  | "file-text"
+  | "clock"
+  | "circle"
+  | "play-circle"
+  | "check-circle"
+  | "filter";
+
+type AvailableQuizCardProps = {
+  quiz: QuizType;
+  onPress: () => void;
+};
+
+const AvailableQuizCard: React.FC<AvailableQuizCardProps> = ({ quiz, onPress }) => {
+  const getDifficultyLevel = (questionCount: number) => {
     if (questionCount <= 10) return { level: "Easy", color: "green" };
     if (questionCount <= 20) return { level: "Medium", color: "yellow" };
     return { level: "Hard", color: "red" };
   };
 
-  const getStatusDisplay = (status) => {
+  const getStatusDisplay = (status: string) => {
     switch (status) {
       case "pending":
-        return { text: "Not Started", color: "orange", icon: "circle" };
+        return { text: "Not Started", color: "orange", icon: "circle" as FeatherIconName };
       case "in_progress":
-        return { text: "In Progress", color: "blue", icon: "play-circle" };
+        return { text: "In Progress", color: "blue", icon: "play-circle" as FeatherIconName };
       case "completed":
-        return { text: "Completed", color: "green", icon: "check-circle" };
+        return { text: "Completed", color: "green", icon: "check-circle" as FeatherIconName };
       default:
-        return { text: "Not Started", color: "orange", icon: "circle" };
+        return { text: "Not Started", color: "orange", icon: "circle" as FeatherIconName };
     }
   };
 
@@ -160,7 +184,7 @@ const QuizScreen = () => {
 
       console.log("Fetched", response.documents.length, "quizzes");
 
-      const formattedQuizzes = response.documents.map((quiz) => {
+      const formattedQuizzes = response.documents.map((quiz: any): QuizType => {
         const questions = JSON.parse(quiz.questions || "[]");
         console.log(`Quiz "${quiz.title}" status:`, quiz.status);
         return {
@@ -201,7 +225,7 @@ const QuizScreen = () => {
     setRefreshing(false);
   };
 
-  const handleStartQuiz = (quiz) => {
+  const handleStartQuiz = (quiz: QuizType) => {
     console.log("Starting quiz:", quiz.title, "Status:", quiz.status);
 
     // Navigate to WriteQuiz screen with quiz data
@@ -222,9 +246,9 @@ const QuizScreen = () => {
     );
   }
 
-  const pendingQuizzes = quizzes.filter((q) => q.status === "pending");
-  const inProgressQuizzes = quizzes.filter((q) => q.status === "in_progress");
-  const completedQuizzes = quizzes.filter((q) => q.status === "completed");
+  const pendingQuizzes = quizzes.filter((q: QuizType) => q.status === "pending");
+  const inProgressQuizzes = quizzes.filter((q: QuizType) => q.status === "in_progress");
+  const completedQuizzes = quizzes.filter((q: QuizType) => q.status === "completed");
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -255,7 +279,7 @@ const QuizScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity className="bg-white px-4 py-2 rounded-lg border border-gray-200">
             <View className="flex-row items-center">
-              <Icon name="sort-desc" size={16} color="#6B7280" />
+              <Icon name="arrow-down" size={16} color="#6B7280" />
               <Text className="text-gray-700 ml-2">Sort</Text>
             </View>
           </TouchableOpacity>
@@ -274,7 +298,7 @@ const QuizScreen = () => {
               </Text>
             </View>
           ) : (
-            quizzes.map((quiz) => (
+            quizzes.map((quiz: QuizType) => (
               <AvailableQuizCard
                 key={quiz.id}
                 quiz={quiz}

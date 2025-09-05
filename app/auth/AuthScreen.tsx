@@ -8,6 +8,7 @@ import {
   Alert,
   Dimensions,
   KeyboardAvoidingView,
+  KeyboardTypeOptions,
   Platform,
   Text,
   TextInput,
@@ -21,8 +22,19 @@ import { account } from "../../utils/appwrite-config";
 const { width } = Dimensions.get("window");
 
 // Move components outside to prevent re-creation
+type InputFieldProps = {
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  secureTextEntry?: boolean;
+  error?: string;
+  showToggle?: boolean;
+  onToggleShow?: () => void;
+  showValue?: boolean;
+  keyboardType?: string;
+};
 const InputField = React.memo(
-  React.forwardRef(
+  React.forwardRef<TextInput, InputFieldProps>(
     (
       {
         placeholder,
@@ -38,9 +50,9 @@ const InputField = React.memo(
       ref
     ) => {
       const handleChangeText = useCallback(
-        (text) => {
+        (text: string) => {
           onChangeText(text);
-          if (ref?.current) {
+          if (ref && typeof ref !== "function" && ref.current) {
             console.log("Focus check:", ref.current.isFocused());
           }
         },
@@ -62,7 +74,7 @@ const InputField = React.memo(
               value={value}
               onChangeText={handleChangeText}
               secureTextEntry={secureTextEntry && !showValue}
-              keyboardType={keyboardType}
+              keyboardType={keyboardType as KeyboardTypeOptions}
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -86,7 +98,13 @@ const InputField = React.memo(
   )
 );
 
-const CustomButton = React.memo(
+type CustomButtonProps = {
+  title: string;
+  onPress: () => void;
+  variant?: "primary" | "secondary";
+  disabled?: boolean;
+};
+const CustomButton: React.FC<CustomButtonProps> = React.memo(
   ({ title, onPress, variant = "primary", disabled = false }) => (
     <TouchableOpacity
       className={`py-4 px-6 rounded-xl mb-3 shadow-sm
@@ -121,7 +139,11 @@ const CustomButton = React.memo(
   )
 );
 
-const AuthScreen = ({ onAuthComplete, onLogout }) => {
+type AuthScreenProps = {
+  onAuthComplete?: () => void;
+  onLogout?: () => void;
+};
+const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete = () => {}, onLogout = () => {} }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -129,7 +151,8 @@ const AuthScreen = ({ onAuthComplete, onLogout }) => {
   const [isSignup, setIsSignup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({});
+  type ErrorsType = { email?: string; password?: string; name?: string };
+  const [errors, setErrors] = useState<ErrorsType>({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const router = useRouter();
@@ -157,7 +180,7 @@ const AuthScreen = ({ onAuthComplete, onLogout }) => {
   }, []);
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: ErrorsType = {};
 
     if (!email.trim()) {
       newErrors.email = "Email is required";
@@ -220,9 +243,9 @@ const AuthScreen = ({ onAuthComplete, onLogout }) => {
     } catch (error) {
       console.log("Auth error:", error);
       let errorMessage = "An error occurred during authentication";
-      if (error.message) errorMessage = error.message;
-      else if (error.code === 401) errorMessage = "Invalid email or password";
-      else if (error.code === 409)
+      if (error instanceof Error && error.message) errorMessage = error.message;
+      else if (typeof error === "object" && error !== null && "code" in error && (error as any).code === 401) errorMessage = "Invalid email or password";
+      else if (typeof error === "object" && error !== null && "code" in error && (error as any).code === 409)
         errorMessage = "An account with this email already exists";
       Alert.alert("Authentication Error", errorMessage);
     } finally {
