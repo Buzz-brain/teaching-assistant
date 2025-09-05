@@ -1,7 +1,10 @@
 {
-  "extends": "expo/tsconfig.base",
+  // "extends": "expo/tsconfig.base", // Removed because file not found
   "compilerOptions": {
-    "strict": true,
+  "strict": true,
+  "esModuleInterop": true,
+  "jsx": "react-jsx",
+    "lib": ["ES2015", "DOM"],
     "paths": {
       "@/*": [
         "./*"
