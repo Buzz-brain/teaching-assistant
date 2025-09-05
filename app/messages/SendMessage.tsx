@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -38,7 +38,14 @@ const SendMessageScreen = () => {
   }, []);
 
   if (userRole !== "teacher") {
-    return null;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' }}>
+        <Text style={{ fontSize: 20, color: '#ef4444', fontWeight: 'bold', marginBottom: 10 }}>Access Denied</Text>
+        <Text style={{ fontSize: 16, color: '#6b7280', textAlign: 'center', marginHorizontal: 20 }}>
+          Only teachers can send messages. Please log in as a teacher to access this page.
+        </Text>
+      </View>
+    );
   }
 
   const sendMessage = () => {

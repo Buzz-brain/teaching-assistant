@@ -1,6 +1,7 @@
 // app/auth/AuthScreen.tsx
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
+import { ID } from "appwrite";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -15,7 +16,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { ID } from "react-native-appwrite";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { account } from "../../utils/appwrite-config";
 
