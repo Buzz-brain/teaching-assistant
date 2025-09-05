@@ -10,7 +10,7 @@
     "lint": "expo lint",
     "dev": "expo start --web",
     "build": "expo export --platform web",
-    "start": "serve dist"
+    "start": "serve web-dist"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
