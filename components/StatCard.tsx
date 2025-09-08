@@ -1,6 +1,6 @@
+import Icon from "@expo/vector-icons/Feather";
 import React from "react";
 import { Text, View } from "react-native";
-import Icon from "react-native-vector-icons/Feather";
 
 const StatCard = ({
   iconName,

@@ -1,6 +1,11 @@
 {
   "expo": {
     "name": "teaching_app",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "slug": "teaching_app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -19,8 +24,8 @@
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "bundler": "webpack",
-      "output": "static",
+      "bundler": "metro",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -41,9 +46,13 @@
     },
     "extra": {
       "router": {},
+      "expo-router": {
+        "appRoot": "app"
+      },
       "eas": {
         "projectId": "c7f9615f-d78b-4ab3-ba6a-f484c513f5c2"
       }
-    }
+    },
+    "owner": "buzzbrain"
   }
 }
