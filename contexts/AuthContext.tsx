@@ -1,11 +1,11 @@
 // contexts/AuthContext.tsx
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  React.createContext,
-  React.ReactNode,
-  React.useContext,
-  React.useEffect,
-  React.useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 import { account } from "../utils/appwrite-config";
 import { universalLogin } from "../utils/universal-auth";
@@ -61,10 +61,10 @@ interface AuthContextType {
   checkAuth: () => Promise<void>;
 }
 
-const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {

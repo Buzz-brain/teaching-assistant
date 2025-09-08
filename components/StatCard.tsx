@@ -1,5 +1,4 @@
 import Icon from "@expo/vector-icons/Feather";
-import React from "react";
 import { Text, View } from "react-native";
 
 const StatCard = ({
