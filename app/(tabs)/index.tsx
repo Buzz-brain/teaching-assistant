@@ -33,8 +33,8 @@ const HomeScreen = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [userName, setUserName] = useState("");
-  const [userInitial, setUserInitial] = useState("T");
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userInitial, setUserInitial] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [stats, setStats] = useState({
     activeStudents: 0,
@@ -220,8 +220,15 @@ const HomeScreen = () => {
     setRefreshing(false);
   };
 
-  // If not authenticated, don't render the teacher dashboard
-  if (!isAuthenticated && !isLoading) {
+  // Robust loading/data guards
+  if (isLoading || userName === null || userInitial === null) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: '#64748b', fontSize: 18 }}>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+  if (!isAuthenticated) {
     return null; // Let the root layout handle showing AuthScreen
   }
 
@@ -270,11 +277,11 @@ const HomeScreen = () => {
                   shadowOffset: { width: 0, height: 4 },
                   elevation: 6
                 }}>
-                  <Text style={{ color: '#2563eb', fontSize: 28, fontWeight: 'bold' }}>{userInitial}</Text>
+                  <Text style={{ color: '#2563eb', fontSize: 28, fontWeight: 'bold' }}>{userInitial ?? ''}</Text>
                 </View>
                 <View>
                   <Text style={{ color: '#fff', fontSize: 18, opacity: 0.9 }}>Welcome back,</Text>
-                  <Text style={{ color: '#fff', fontSize: 26, fontWeight: 'bold', letterSpacing: 0.5 }}>{userName.split(' ')[0]}!</Text>
+                  <Text style={{ color: '#fff', fontSize: 26, fontWeight: 'bold', letterSpacing: 0.5 }}>{userName ? userName.split(' ')[0] : ''}!</Text>
                   <Text style={{ color: '#e0e7ef', fontSize: 15, marginTop: 2, opacity: 0.85 }}>Teacher Dashboard</Text>
                 </View>
               </View>
