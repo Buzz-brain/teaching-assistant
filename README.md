@@ -1,6 +1,6 @@
 # Teaching Assistant App
 
- > Teaching Assistant is a modern, cross-platform application designed to empower both students and teachers with seamless classroom management, interactive quizzes, personalized schedules, real-time messaging, and more. Built with Expo, React Native, and Appwrite, it delivers a unified, professional experience across Android, iOS, and web; making learning and teaching more efficient, engaging, and accessible for everyone.
+ > A modern, cross-platform teaching assistant app for students and teachers, built with Expo, React Native, and Appwrite.
 
 ---
 
