@@ -16,8 +16,8 @@ export const appwriteClient = client;
 
 // Database and Collection IDs
 export const DATABASE_ID = "68bf445f00120547df2f";
-export const QUIZ_COLLECTION_ID = "688fc0ed003716ec278c";
-export const SCHEDULES_COLLECTION_ID = "6890c611001277753138"; // Replace with actual ID from Appwrite Console
+export const QUIZ_COLLECTION_ID = "68bf747b002db1b18b20";
+export const SCHEDULES_COLLECTION_ID = "68bf74b4003887dfbf22"; // Replace with actual ID from Appwrite Console
 
 // Add this line to detect web environment
 export const isWeb = typeof window !== 'undefined' && !window.navigator?.product?.includes('ReactNative');
