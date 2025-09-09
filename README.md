@@ -151,6 +151,13 @@ This project is licensed under the MIT License.
 
 ---
 
+## 🧑‍💻 Author
+
+**Nduoma Chinomso Christian**  
+_AKA Buzz Brain_
+
+---
+
 ## 🙏 Acknowledgements
 
 - [Expo](https://expo.dev)
