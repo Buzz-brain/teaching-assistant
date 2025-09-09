@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -11,7 +11,13 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { databases, ID } from "../../utils/appwrite-config"; // Import from your config file
+import { DATABASE_ID, databases, ID, QUIZ_COLLECTION_ID } from "../../utils/appwrite-config"; // Import from your config file
+type Question = {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+};
 
 const CreateQuizScreen = () => {
   const router = useRouter();
@@ -20,7 +26,7 @@ const CreateQuizScreen = () => {
   const [quizTitle, setQuizTitle] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [duration, setDuration] = useState("30");
-  const [questions, setQuestions] = useState([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [questionText, setQuestionText] = useState("");
   const [optionA, setOptionA] = useState("");
   const [optionB, setOptionB] = useState("");
@@ -86,7 +92,7 @@ const CreateQuizScreen = () => {
     Alert.alert("Success", "Question added successfully!");
   };
 
-  const deleteQuestion = (id) => {
+  const deleteQuestion = (id: string) => {
     setQuestions(questions.filter((q) => q.id !== id));
   };
 
@@ -117,13 +123,13 @@ const CreateQuizScreen = () => {
         status: "pending", // Add this line - quiz starts as pending
       };
 
-      await databases.createDocument(
-        "688fc0cd00083417e772", // Your actual database ID
-        "688fc0ed003716ec278c", // Your actual collection ID
-        ID.unique(),
-        quizData,
-        [] // No document-level permissions for now
-      );
+        await databases.createDocument(
+          DATABASE_ID,
+          QUIZ_COLLECTION_ID,
+          ID.unique(),
+          quizData,
+          [] // No document-level permissions for now
+        );
 
       Alert.alert("Success", `Quiz "${quizTitle}" published successfully!`, [
         { text: "OK", onPress: () => router.push("/(tabs)") },
@@ -207,7 +213,7 @@ const CreateQuizScreen = () => {
               <Text className="text-lg font-semibold text-gray-800 mb-3">
                 Added Questions ({questions.length})
               </Text>
-              {questions.map((q, index) => (
+              {questions.map((q: Question, index: number) => (
                 <View
                   key={q.id}
                   className="border-l-4 border-blue-500 bg-blue-50 p-3 mb-3 rounded"
@@ -226,7 +232,7 @@ const CreateQuizScreen = () => {
                   <Text className="text-sm text-gray-800 mb-2">
                     {q.question}
                   </Text>
-                  {q.options.map((option, optIndex) => (
+                  {q.options.map((option: string, optIndex: number) => (
                     <Text
                       key={optIndex}
                       className={`text-xs ml-2 ${

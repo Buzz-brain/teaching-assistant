@@ -3,22 +3,17 @@ import { Feather as Icon, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Query } from "appwrite";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    RefreshControl,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StatCard from "../../components/StatCard";
-import {
-  account,
-  DATABASE_ID,
-  databases,
-  SCHEDULES_COLLECTION_ID,
-} from "../../utils/appwrite-config";
+import { account, DATABASE_ID, databases, QUIZ_COLLECTION_ID, SCHEDULES_COLLECTION_ID } from "../../utils/appwrite-config";
 
 const HomeScreen = () => {
   const router = useRouter();
@@ -57,8 +52,8 @@ const HomeScreen = () => {
 
       // Fetch all quizzes
       const quizResponse = await databases.listDocuments(
-        "688fc0cd00083417e772", // Your database ID
-        "688fc0ed003716ec278c", // Your collection ID
+  DATABASE_ID,
+  QUIZ_COLLECTION_ID,
         [Query.orderDesc("$createdAt")]
       );
 

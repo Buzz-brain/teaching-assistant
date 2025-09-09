@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StatCard from "../../components/StatCard"; // Using your existing StatCard component
-import { account, databases } from "../../utils/appwrite-config";
+import { account, DATABASE_ID, databases, QUIZ_COLLECTION_ID } from "../../utils/appwrite-config";
 
 // QuizCard Component
 const QuizCard = ({ quiz, onPress }) => (
@@ -90,8 +90,8 @@ const StudentDashboard = () => {
 
       // Fetch all quizzes
       const response = await databases.listDocuments(
-        "688fc0cd00083417e772", // Your database ID
-        "688fc0ed003716ec278c", // Your collection ID
+        DATABASE_ID,
+        QUIZ_COLLECTION_ID,
         [
           Query.orderDesc("$createdAt"), // Show newest first
           Query.limit(50), // Limit to recent quizzes

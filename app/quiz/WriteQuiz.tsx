@@ -1,6 +1,6 @@
 // WriteQuiz.tsx - Updated to store user ID on completion
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Modal,
@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { account, databases } from "../../utils/appwrite-config";
+import { account, DATABASE_ID, databases, QUIZ_COLLECTION_ID } from "../../utils/appwrite-config";
 
 const StudentQuizScreen = () => {
   const router = useRouter();
@@ -64,8 +64,8 @@ const StudentQuizScreen = () => {
           if (quiz.status === "pending") {
             try {
               await databases.updateDocument(
-                "688fc0cd00083417e772",
-                "688fc0ed003716ec278c",
+                DATABASE_ID,
+                QUIZ_COLLECTION_ID,
                 quiz.id,
                 {
                   status: "in_progress",
@@ -93,8 +93,8 @@ const StudentQuizScreen = () => {
           console.log("Fetching quiz by ID:", params.quizId);
 
           const response = await databases.getDocument(
-            "688fc0cd00083417e772",
-            "688fc0ed003716ec278c",
+            DATABASE_ID,
+            QUIZ_COLLECTION_ID,
             params.quizId
           );
 
@@ -132,8 +132,8 @@ const StudentQuizScreen = () => {
           if (quiz.status === "pending") {
             try {
               await databases.updateDocument(
-                "688fc0cd00083417e772",
-                "688fc0ed003716ec278c",
+                DATABASE_ID,
+                QUIZ_COLLECTION_ID,
                 quiz.id,
                 {
                   status: "in_progress",
@@ -231,8 +231,8 @@ const StudentQuizScreen = () => {
       // Update quiz status to completed in database with user info
       try {
         await databases.updateDocument(
-          "688fc0cd00083417e772",
-          "688fc0ed003716ec278c",
+          DATABASE_ID,
+          QUIZ_COLLECTION_ID,
           selectedQuiz.id,
           {
             status: "completed",

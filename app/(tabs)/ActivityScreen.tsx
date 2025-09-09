@@ -1,18 +1,28 @@
 // ActivityScreen.tsx - Updated to use real user names from auth
 import { Query } from "appwrite";
 import { useFocusEffect } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ActivityItem from "../../components/ActivityItem";
-import { databases } from "../../utils/appwrite-config";
+import { DATABASE_ID, databases, QUIZ_COLLECTION_ID } from "../../utils/appwrite-config";
+
+type Activity = {
+  id: string;
+  initials: string;
+  name: string;
+  action: string;
+  time: string;
+  color: string;
+  timestamp?: Date;
+};
 
 const ActivityScreen = () => {
-  const [activities, setActivities] = useState([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const getActivityColor = (index) => {
+  const getActivityColor = (index: number) => {
     const colors = [
       "bg-indigo-500",
       "bg-green-500",
@@ -26,7 +36,7 @@ const ActivityScreen = () => {
     return colors[index % colors.length];
   };
 
-  const getInitials = (name) => {
+  const getInitials = (name: string) => {
     if (!name) return "U";
     const words = name.trim().split(" ");
     if (words.length >= 2) {
@@ -35,13 +45,13 @@ const ActivityScreen = () => {
     return words[0].substring(0, 2).toUpperCase();
   };
 
-  const formatTimeAgo = (dateString) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffMs = now - date;
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const formatTimeAgo = (dateString: string) => {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffMinutes < 1) return "Just now";
     if (diffMinutes < 60) return `${diffMinutes}m ago`;
@@ -54,15 +64,15 @@ const ActivityScreen = () => {
     try {
       // Fetch recent quiz activities
       const response = await databases.listDocuments(
-        "688fc0cd00083417e772", // Your database ID
-        "688fc0ed003716ec278c", // Your collection ID
+        DATABASE_ID,
+        QUIZ_COLLECTION_ID,
         [
           Query.orderDesc("$updatedAt"), // Order by most recent updates
           Query.limit(30), // Get more records to have enough activities
         ]
       );
 
-      const activityList = [];
+  const activityList: Activity[] = [];
 
       // Process quiz activities
       response.documents.forEach((quiz, index) => {
@@ -119,10 +129,10 @@ const ActivityScreen = () => {
       });
 
       // Sort activities by timestamp (most recent first)
-      activityList.sort((a, b) => b.timestamp - a.timestamp);
+  activityList.sort((a, b) => (b.timestamp?.getTime() ?? 0) - (a.timestamp?.getTime() ?? 0));
 
       // Take the most recent 20 activities
-      setActivities(activityList.slice(0, 20));
+  setActivities(activityList.slice(0, 20));
     } catch (error) {
       console.error("Error fetching activities:", error);
       // Fallback to some mock data
@@ -134,7 +144,7 @@ const ActivityScreen = () => {
           action: "No recent quiz activity found",
           time: "N/A",
           color: "bg-gray-500",
-        },
+        } as Activity,
       ]);
     } finally {
       setIsLoading(false);

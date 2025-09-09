@@ -2,26 +2,37 @@
 import { Feather as Icon } from "@expo/vector-icons";
 import { Query } from "appwrite";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    RefreshControl,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { databases } from "../../utils/appwrite-config";
+import { DATABASE_ID, databases, QUIZ_COLLECTION_ID } from "../../utils/appwrite-config";
 
 // Available Quiz Card Component
-const AvailableQuizCard = ({ quiz, onPress }) => {
-  const getDifficultyLevel = (questionCount) => {
+type Quiz = {
+  id: string;
+  title: string;
+  course: string;
+  duration: number;
+  questionCount: number;
+  createdAt: string;
+  status: string;
+  questions: any;
+};
+
+const AvailableQuizCard = ({ quiz, onPress }: { quiz: Quiz; onPress: (quiz: Quiz) => void }) => {
+  const getDifficultyLevel = (questionCount: number) => {
     if (questionCount <= 10) return { level: "Easy", color: "green" };
     if (questionCount <= 20) return { level: "Medium", color: "yellow" };
     return { level: "Hard", color: "red" };
   };
 
-  const getStatusDisplay = (status) => {
+  const getStatusDisplay = (status: string) => {
     switch (status) {
       case "pending":
         return { text: "Not Started", color: "orange", icon: "circle" };
@@ -40,7 +51,7 @@ const AvailableQuizCard = ({ quiz, onPress }) => {
   return (
     <TouchableOpacity
       className="bg-white rounded-2xl p-6 mb-4 shadow-sm border border-gray-100"
-      onPress={onPress}
+      onPress={() => onPress(quiz)}
     >
       <View className="flex-row items-start justify-between mb-4">
         <View className="flex-row items-center flex-1">
@@ -125,7 +136,7 @@ const AvailableQuizCard = ({ quiz, onPress }) => {
             ? "bg-blue-500"
             : "bg-blue-500"
         }`}
-        onPress={onPress}
+        onPress={() => onPress(quiz)}
         disabled={quiz.status === "completed"}
       >
         <Text className="text-white text-center font-semibold text-lg">
@@ -143,7 +154,7 @@ const AvailableQuizCard = ({ quiz, onPress }) => {
 const QuizScreen = () => {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
-  const [quizzes, setQuizzes] = useState([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch quizzes from database
@@ -151,8 +162,8 @@ const QuizScreen = () => {
     try {
       console.log("Fetching quizzes from database...");
       const response = await databases.listDocuments(
-        "688fc0cd00083417e772", // Your database ID
-        "688fc0ed003716ec278c", // Your collection ID
+        DATABASE_ID,
+        QUIZ_COLLECTION_ID,
         [
           Query.orderDesc("$createdAt"), // Show newest first
         ]
@@ -201,7 +212,7 @@ const QuizScreen = () => {
     setRefreshing(false);
   };
 
-  const handleStartQuiz = (quiz) => {
+  const handleStartQuiz = (quiz: Quiz) => {
     console.log("Starting quiz:", quiz.title, "Status:", quiz.status);
 
     // Navigate to WriteQuiz screen with quiz data
@@ -222,9 +233,9 @@ const QuizScreen = () => {
     );
   }
 
-  const pendingQuizzes = quizzes.filter((q) => q.status === "pending");
-  const inProgressQuizzes = quizzes.filter((q) => q.status === "in_progress");
-  const completedQuizzes = quizzes.filter((q) => q.status === "completed");
+  const pendingQuizzes = quizzes.filter((q: Quiz) => q.status === "pending");
+  const inProgressQuizzes = quizzes.filter((q: Quiz) => q.status === "in_progress");
+  const completedQuizzes = quizzes.filter((q: Quiz) => q.status === "completed");
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -255,6 +266,7 @@ const QuizScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity className="bg-white px-4 py-2 rounded-lg border border-gray-200">
             <View className="flex-row items-center">
+              {/* @ts-ignore: sort-desc may not be in Feather types, but is valid in Expo vector icons */}
               <Icon name="sort-desc" size={16} color="#6B7280" />
               <Text className="text-gray-700 ml-2">Sort</Text>
             </View>
