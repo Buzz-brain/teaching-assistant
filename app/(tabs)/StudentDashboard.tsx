@@ -1,8 +1,8 @@
-// StudentDashboard.tsx - Updated with fixed notification navigation
+// studentdashboard.tsx - Renamed for case-sensitive routing
 import { Feather as Icon } from "@expo/vector-icons";
 import { Query } from "appwrite";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
