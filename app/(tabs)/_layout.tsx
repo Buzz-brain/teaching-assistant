@@ -70,7 +70,7 @@ export default function TabLayout() {
               size={size}
             />
           ),
-          href: userRole === "teacher" ? "/(tabs)/" : null,
+          href: userRole === "teacher" ? "/(tabs)" : null,
         }}
       />
       <Tabs.Screen
@@ -120,10 +120,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="StudentDashboard"
         options={{
-          title: "Dashboard",
+          title: "Home",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "grid" : "grid-outline"}
+              // name={focused ? "grid" : "grid-outline"}
+              name={focused ? "home" : "home-outline"}
               color={color}
               size={size}
             />

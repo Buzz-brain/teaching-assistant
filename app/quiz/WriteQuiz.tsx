@@ -11,26 +11,43 @@ import {
 } from "react-native";
 import { account, DATABASE_ID, databases, QUIZ_COLLECTION_ID } from "../../utils/appwrite-config";
 
+type QuizQuestion = {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+};
+
+type QuizType = {
+  id: string;
+  title: string;
+  course: string;
+  duration: number;
+  questions: QuizQuestion[];
+  status?: string;
+};
+
 const StudentQuizScreen = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
 
   const [currentView, setCurrentView] = useState("taking");
-  const [selectedQuiz, setSelectedQuiz] = useState(null);
+  type AnswerType = { questionId: string; selectedOption: number };
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizType | null>(null);
+  const [answers, setAnswers] = useState<AnswerType[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState([]);
   const [timeLeft, setTimeLeft] = useState(0);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [quizLoaded, setQuizLoaded] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Get current user ID
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
         const user = await account.get();
-        setCurrentUserId(user.$id);
+        setCurrentUserId(user.$id as string);
       } catch (error) {
         console.error("Error getting current user:", error);
       }
@@ -46,9 +63,12 @@ const StudentQuizScreen = () => {
       try {
         console.log("Loading quiz with params:", params);
 
-        if (params.quizData) {
+        const quizId = Array.isArray(params.quizId) ? params.quizId[0] : params.quizId;
+        const quizData = Array.isArray(params.quizData) ? params.quizData[0] : params.quizData;
+
+        if (quizData) {
           // Quiz data passed from QuizScreen
-          const quiz = JSON.parse(params.quizData);
+          const quiz = JSON.parse(quizData);
           console.log(
             "Loaded quiz from params:",
             quiz.title,
@@ -75,7 +95,7 @@ const StudentQuizScreen = () => {
               );
               console.log("Updated quiz status from pending to in_progress");
               // Update local state
-              setSelectedQuiz((prev) => ({ ...prev, status: "in_progress" }));
+              setSelectedQuiz((prev) => prev ? { ...prev, status: "in_progress" } : prev);
             } catch (updateError) {
               console.warn("Failed to update quiz status:", updateError);
             }
@@ -88,14 +108,14 @@ const StudentQuizScreen = () => {
             );
             return;
           }
-        } else if (params.quizId) {
+        } else if (quizId) {
           // Fetch quiz data from database using ID
-          console.log("Fetching quiz by ID:", params.quizId);
+          console.log("Fetching quiz by ID:", quizId);
 
           const response = await databases.getDocument(
             DATABASE_ID,
             QUIZ_COLLECTION_ID,
-            params.quizId
+            quizId
           );
 
           if (response.status === "completed") {
@@ -142,7 +162,7 @@ const StudentQuizScreen = () => {
                 }
               );
               console.log("Updated quiz status from pending to in_progress");
-              setSelectedQuiz((prev) => ({ ...prev, status: "in_progress" }));
+              setSelectedQuiz((prev) => prev ? { ...prev, status: "in_progress" } : prev);
             } catch (updateError) {
               console.warn("Failed to update quiz status:", updateError);
             }
@@ -178,9 +198,9 @@ const StudentQuizScreen = () => {
     }
   }, [timeLeft, currentView, selectedQuiz]);
 
-  const selectAnswer = (questionId, optionIndex) => {
+  const selectAnswer = (questionId: string, optionIndex: number) => {
     const existingAnswerIndex = answers.findIndex(
-      (a) => a.questionId === questionId
+      (a: AnswerType) => a.questionId === questionId
     );
     if (existingAnswerIndex >= 0) {
       const newAnswers = [...answers];
@@ -208,11 +228,10 @@ const StudentQuizScreen = () => {
 
   const submitQuiz = async () => {
     if (!selectedQuiz || !currentUserId) return;
-
     try {
       let correctAnswers = 0;
-      selectedQuiz.questions.forEach((question) => {
-        const userAnswer = answers.find((a) => a.questionId === question.id);
+      selectedQuiz.questions.forEach((question: QuizQuestion) => {
+        const userAnswer = answers.find((a: AnswerType) => a.questionId === question.id);
         if (
           userAnswer &&
           userAnswer.selectedOption === question.correctAnswer
@@ -266,21 +285,21 @@ const StudentQuizScreen = () => {
     }
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const getCurrentAnswer = (questionId) => {
-    return answers.find((a) => a.questionId === questionId)?.selectedOption;
+  const getCurrentAnswer = (questionId: string) => {
+    return answers.find((a: AnswerType) => a.questionId === questionId)?.selectedOption;
   };
 
   // Show loading screen
   if (loading || !selectedQuiz) {
     return (
-      <View className="flex-1 bg-gray-50 justify-center items-center">
-        <Text className="text-lg text-gray-600">Loading quiz...</Text>
+      <View style={{ flex: 1, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: 18, color: '#64748b' }}>Loading quiz...</Text>
       </View>
     );
   }
@@ -288,15 +307,15 @@ const StudentQuizScreen = () => {
   // Check if quiz has questions
   if (!selectedQuiz.questions || selectedQuiz.questions.length === 0) {
     return (
-      <View className="flex-1 bg-gray-50 justify-center items-center">
-        <Text className="text-lg text-red-600">
+      <View style={{ flex: 1, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: 18, color: '#ef4444', fontWeight: '600' }}>
           No questions found in this quiz
         </Text>
         <TouchableOpacity
-          className="mt-4 bg-blue-500 px-6 py-3 rounded-lg"
+          style={{ marginTop: 24, backgroundColor: '#2563eb', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 16, shadowColor: '#2563eb', shadowOpacity: 0.10, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}
           onPress={() => router.back()}
         >
-          <Text className="text-white font-medium">Go Back</Text>
+          <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>Go Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -306,152 +325,178 @@ const StudentQuizScreen = () => {
   const currentAnswer = getCurrentAnswer(currentQuestion.id);
 
   return (
-    <View className="flex-1 bg-gray-50">
-      {/* Quiz Header */}
-      <View className="bg-white p-4 border-b border-gray-200 flex-row justify-between items-center">
-        <View>
-          <Text className="text-lg font-semibold text-gray-900">
-            {selectedQuiz.title}
-          </Text>
-          <Text className="text-sm text-gray-600">
-            Question {currentQuestionIndex + 1} of{" "}
-            {selectedQuiz.questions.length}
-          </Text>
-          {selectedQuiz.status && (
-            <Text className="text-xs text-blue-600 mt-1">
-              Status: {selectedQuiz.status}
-            </Text>
-          )}
-        </View>
-        <View className="bg-gray-100 px-3 py-2 rounded-full">
-          <Text
-            className={`text-base font-semibold ${
-              timeLeft < 300 ? "text-red-500" : "text-gray-800"
-            }`}
-          >
-            {formatTime(timeLeft)}
-          </Text>
+    <View style={{ flex: 1, backgroundColor: '#f1f5f9' }}>
+      {/* Gradient Header */}
+      <View style={{ position: 'relative', marginBottom: 0 }}>
+        <View style={{ height: 120, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, overflow: 'hidden', justifyContent: 'flex-end' }}>
+          <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
+            <View style={{
+              backgroundColor: '#2563eb',
+              flex: 1,
+              opacity: 0.98,
+              borderBottomLeftRadius: 32,
+              borderBottomRightRadius: 32,
+            }} />
+            {/* <View style={{
+              position: 'absolute',
+              bottom: -18,
+              left: 0,
+              right: 0,
+              height: 36,
+              backgroundColor: '#f1f5f9',
+              borderTopLeftRadius: 36,
+              borderTopRightRadius: 36,
+              opacity: 0.9,
+            }} /> */}
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', height: 120, paddingHorizontal: 24, zIndex: 2, justifyContent: 'space-between' }}>
+            <View>
+              <Text style={{ color: '#fff', fontSize: 22, fontWeight: 'bold', letterSpacing: 0.5 }}>{selectedQuiz.title}</Text>
+              <Text style={{ color: '#e0e7ef', fontSize: 15, marginTop: 6, opacity: 0.85 }}>Question {currentQuestionIndex + 1} of {selectedQuiz.questions.length}</Text>
+              {selectedQuiz.status && (
+                <Text style={{ color: '#bae6fd', fontSize: 13, marginTop: 2, fontWeight: '500' }}>Status: {selectedQuiz.status}</Text>
+              )}
+            </View>
+            
+            <View style={{ backgroundColor: '#fff', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 8, shadowColor: '#2563eb', shadowOpacity: 0.10, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }}>
+              <Text style={{ color: timeLeft < 300 ? '#ef4444' : '#1e293b', fontWeight: 'bold', fontSize: 18 }}>{formatTime(timeLeft)}</Text>
+            </View>
+          </View>
         </View>
       </View>
 
       {/* Progress Bar */}
-      <View className="h-1 bg-gray-200">
+      <View style={{ height: 6, backgroundColor: '#e5e7eb', borderRadius: 3, marginHorizontal: 18, marginTop: 8, marginBottom: 0, overflow: 'hidden' }}>
         <View
-          className="h-full bg-blue-500"
           style={{
-            width: `${
-              ((currentQuestionIndex + 1) / selectedQuiz.questions.length) * 100
-            }%`,
+            height: 6,
+            backgroundColor: '#2563eb',
+            borderRadius: 3,
+            width: `${((currentQuestionIndex + 1) / selectedQuiz.questions.length) * 100}%`,
+            // transition: 'width 0.3s',
           }}
         />
       </View>
 
       {/* Question */}
-      <ScrollView className="flex-1 p-4">
-        <Text className="text-lg font-medium text-gray-900 mb-6 leading-6">
-          {currentQuestion.question}
-        </Text>
+      <ScrollView style={{ flex: 1, padding: 18 }}>
+        <View style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 18, padding: 18, marginBottom: 18, shadowColor: '#2563eb', shadowOpacity: 0.10, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 4 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: '#1e293b', marginBottom: 12, lineHeight: 26 }}>{currentQuestion.question}</Text>
 
-        {/* Options */}
-        <View className="space-y-3">
-          {currentQuestion.options.map((option, index) => (
-            <TouchableOpacity
-              key={index}
-              className={`flex-row items-center p-4 bg-white rounded-lg border-2 ${
-                currentAnswer === index
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200"
-              }`}
-              onPress={() => selectAnswer(currentQuestion.id, index)}
-            >
-              <View
-                className={`w-5 h-5 rounded-full border-2 mr-3 items-center justify-center ${
-                  currentAnswer === index
-                    ? "border-blue-500"
-                    : "border-gray-300"
-                }`}
-              >
-                {currentAnswer === index && (
-                  <View className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                )}
-              </View>
-              <Text
-                className={`flex-1 text-base ${
-                  currentAnswer === index
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-700"
-                }`}
-              >
-                {String.fromCharCode(65 + index)}. {option}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {/* Options */}
+          <View>
+            {currentQuestion.options.map((option: string, index: number) => {
+              const selected = currentAnswer === index;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: 16,
+                    backgroundColor: selected ? 'rgba(37,99,235,0.08)' : '#fff',
+                    borderRadius: 12,
+                    borderWidth: 2,
+                    borderColor: selected ? '#2563eb' : '#e5e7eb',
+                    marginBottom: 12,
+                    shadowColor: selected ? '#2563eb' : undefined,
+                    shadowOpacity: selected ? 0.10 : 0,
+                    shadowRadius: selected ? 8 : 0,
+                    shadowOffset: selected ? { width: 0, height: 2 } : undefined,
+                    elevation: selected ? 2 : 0,
+                  }}
+                  onPress={() => selectAnswer(currentQuestion.id, index)}
+                  activeOpacity={0.85}
+                >
+                  <View style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 11,
+                    borderWidth: 2,
+                    borderColor: selected ? '#2563eb' : '#cbd5e1',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 14,
+                  }}>
+                    {selected && (
+                      <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#2563eb' }} />
+                    )}
+                  </View>
+                  <Text style={{ flex: 1, fontSize: 16, color: selected ? '#2563eb' : '#334155', fontWeight: selected ? '600' : '400' }}>
+                    {String.fromCharCode(65 + index)}. {option}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       </ScrollView>
 
       {/* Navigation Buttons */}
-      <View className="bg-white p-4 border-t border-gray-200 flex-row justify-between">
+      <View style={{ backgroundColor: '#fff', padding: 18, borderTopWidth: 1, borderTopColor: '#e5e7eb', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <TouchableOpacity
-          className={`px-6 py-3 rounded-lg border ${
-            currentQuestionIndex === 0 ? "border-gray-300" : "border-blue-500"
-          }`}
+          style={{
+            paddingHorizontal: 28,
+            paddingVertical: 14,
+            borderRadius: 16,
+            borderWidth: 2,
+            borderColor: currentQuestionIndex === 0 ? '#cbd5e1' : '#2563eb',
+            backgroundColor: currentQuestionIndex === 0 ? '#f1f5f9' : '#fff',
+            opacity: currentQuestionIndex === 0 ? 0.7 : 1,
+            shadowColor: '#2563eb',
+            shadowOpacity: 0.08,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 2,
+          }}
           onPress={previousQuestion}
           disabled={currentQuestionIndex === 0}
         >
-          <Text
-            className={`text-base font-medium ${
-              currentQuestionIndex === 0 ? "text-gray-400" : "text-blue-500"
-            }`}
-          >
-            Previous
-          </Text>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: currentQuestionIndex === 0 ? '#94a3b8' : '#2563eb' }}>Previous</Text>
         </TouchableOpacity>
 
         {currentQuestionIndex === selectedQuiz.questions.length - 1 ? (
           <TouchableOpacity
-            className="bg-green-500 px-6 py-3 rounded-lg"
+            style={{ backgroundColor: '#22c55e', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 16, shadowColor: '#22c55e', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}
             onPress={() => setShowConfirmModal(true)}
           >
-            <Text className="text-white text-base font-semibold">
-              Submit Quiz
-            </Text>
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Submit Quiz</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            className="bg-blue-500 px-6 py-3 rounded-lg"
+            style={{ backgroundColor: '#2563eb', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 16, shadowColor: '#2563eb', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}
             onPress={nextQuestion}
           >
-            <Text className="text-white text-base font-medium">Next</Text>
+            <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>Next</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Confirm Submit Modal */}
       <Modal visible={showConfirmModal} transparent animationType="fade">
-        <View className="flex-1 bg-black bg-opacity-50 justify-center items-center">
-          <View className="bg-white m-5 p-5 rounded-xl items-center">
-            <Text className="text-lg font-semibold mb-2 text-gray-900">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: 'rgba(255,255,255,0.98)', margin: 20, padding: 28, borderRadius: 22, alignItems: 'center', shadowColor: '#2563eb', shadowOpacity: 0.10, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}>
+            <Text style={{ fontSize: 20, fontWeight: '700', marginBottom: 8, color: '#1e293b' }}>
               Submit Quiz?
             </Text>
-            <Text className="text-base text-gray-600 text-center mb-5 leading-5">
-              Are you sure you want to submit? You have answered{" "}
-              {answers.length} out of {selectedQuiz.questions.length} questions.
+            <Text style={{ fontSize: 16, color: '#64748b', textAlign: 'center', marginBottom: 18, lineHeight: 22 }}>
+              Are you sure you want to submit? You have answered {answers.length} out of {selectedQuiz.questions.length} questions.
             </Text>
-            <View className="flex-row space-x-3">
+            <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity
-                className="px-5 py-2.5 rounded-lg border border-gray-300"
+                style={{ paddingHorizontal: 22, paddingVertical: 12, borderRadius: 14, borderWidth: 1, borderColor: '#cbd5e1', backgroundColor: '#f1f5f9', marginRight: 4 }}
                 onPress={() => setShowConfirmModal(false)}
               >
-                <Text className="text-gray-600 text-base">Cancel</Text>
+                <Text style={{ color: '#64748b', fontSize: 16, fontWeight: '500' }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="bg-green-500 px-5 py-2.5 rounded-lg"
+                style={{ backgroundColor: '#22c55e', paddingHorizontal: 22, paddingVertical: 12, borderRadius: 14, marginLeft: 4, shadowColor: '#22c55e', shadowOpacity: 0.10, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 4 }}
                 onPress={() => {
                   setShowConfirmModal(false);
                   submitQuiz();
                 }}
               >
-                <Text className="text-white text-base font-medium">Submit</Text>
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Submit</Text>
               </TouchableOpacity>
             </View>
           </View>

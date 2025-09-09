@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -140,109 +141,100 @@ const CreateQuizScreen = () => {
     }
   };
   return (
-    <SafeAreaView className="flex-1">
-      <ScrollView className="flex-1 bg-gray-100">
-        <View className="bg-white px-4 py-3 border-b border-gray-200">
-          <View className="flex-row items-center">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f1f5f9' }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32 }}>
+        {/* Gradient Header */}
+        <LinearGradient
+          colors={["#2563eb", "#60a5fa"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ paddingTop: 36, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, marginBottom: 12, shadowColor: '#2563eb', shadowOpacity: 0.10, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6 }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity
-              className="mr-3 pr-4"
+              style={{ marginRight: 18, paddingRight: 12 }}
               onPress={() => router.back()}
+              activeOpacity={0.7}
             >
-              <Text className="text-2xl text-gray-600">
-                <Ionicons name="arrow-back-sharp" size={24} />
-              </Text>
+              <Ionicons name="arrow-back-sharp" size={28} color="#fff" />
             </TouchableOpacity>
-            <Text className="text-xl font-bold text-gray-800">Create Quiz</Text>
+            <Ionicons name="create-outline" size={28} color="#fff" style={{ marginRight: 10 }} />
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', letterSpacing: 0.5 }}>Create Quiz</Text>
           </View>
-        </View>
+        </LinearGradient>
 
-        <View className="p-4 space-y-4">
-          <View className="bg-white rounded-lg p-4 shadow-sm">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Quiz Information
-            </Text>
+        <View style={{ padding: 18, gap: 18 }}>
+          {/* Quiz Info Card */}
+          <View style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 20, padding: 18, shadowColor: '#2563eb', shadowOpacity: 0.10, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 4 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#1e293b', marginBottom: 10 }}>Quiz Information</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg p-3 mb-3 text-base"
+              style={{ borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 12, padding: 12, marginBottom: 12, fontSize: 16, backgroundColor: '#f8fafc', color: '#1e293b' }}
               placeholder="Enter quiz title..."
               value={quizTitle}
               onChangeText={setQuizTitle}
+              placeholderTextColor="#94a3b8"
             />
-            <Text className="text-sm font-medium text-gray-700 mb-2">
-              Select Course:
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="mb-3"
-            >
-              <View className="flex-row space-x-2">
+            <Text style={{ fontSize: 14, fontWeight: '500', color: '#334155', marginBottom: 6 }}>Select Course:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
                 {courses.map((course) => (
                   <TouchableOpacity
                     key={course}
-                    className={`px-4 py-2 rounded-full border ${
-                      selectedCourse === course
-                        ? "bg-blue-500 border-blue-500"
-                        : "bg-white border-gray-300"
-                    }`}
+                    style={{
+                      paddingHorizontal: 18,
+                      paddingVertical: 8,
+                      borderRadius: 18,
+                      borderWidth: 2,
+                      borderColor: selectedCourse === course ? '#2563eb' : '#cbd5e1',
+                      backgroundColor: selectedCourse === course ? '#2563eb' : '#fff',
+                      marginRight: 8,
+                      shadowColor: selectedCourse === course ? '#2563eb' : undefined,
+                      shadowOpacity: selectedCourse === course ? 0.10 : 0,
+                      shadowRadius: selectedCourse === course ? 8 : 0,
+                      shadowOffset: selectedCourse === course ? { width: 0, height: 2 } : undefined,
+                      elevation: selectedCourse === course ? 2 : 0,
+                    }}
                     onPress={() => setSelectedCourse(course)}
+                    activeOpacity={0.85}
                   >
-                    <Text
-                      className={`text-sm ${
-                        selectedCourse === course
-                          ? "text-white"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      {course}
-                    </Text>
+                    <Text style={{ fontSize: 15, color: selectedCourse === course ? '#fff' : '#334155', fontWeight: selectedCourse === course ? '700' : '500' }}>{course}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </ScrollView>
             <TextInput
-              className="border border-gray-300 rounded-lg p-3 text-base"
+              style={{ borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 12, padding: 12, fontSize: 16, backgroundColor: '#f8fafc', color: '#1e293b' }}
               placeholder="Duration (minutes)"
               value={duration}
               onChangeText={setDuration}
               keyboardType="numeric"
+              placeholderTextColor="#94a3b8"
             />
           </View>
 
           {questions.length > 0 && (
-            <View className="bg-white rounded-lg p-4 shadow-sm">
-              <Text className="text-lg font-semibold text-gray-800 mb-3">
-                Added Questions ({questions.length})
-              </Text>
+            <View style={{ backgroundColor: 'rgba(236,245,255,0.95)', borderRadius: 18, padding: 16, shadowColor: '#2563eb', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
+              <Text style={{ fontSize: 17, fontWeight: '600', color: '#2563eb', marginBottom: 10 }}>Added Questions ({questions.length})</Text>
               {questions.map((q: Question, index: number) => (
-                <View
-                  key={q.id}
-                  className="border-l-4 border-blue-500 bg-blue-50 p-3 mb-3 rounded"
-                >
-                  <View className="flex-row justify-between items-start mb-2">
-                    <Text className="text-sm font-bold text-blue-600">
-                      Question {index + 1}
-                    </Text>
+                <View key={q.id} style={{ borderLeftWidth: 4, borderLeftColor: '#2563eb', backgroundColor: '#e0e7ef', padding: 12, marginBottom: 10, borderRadius: 12 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#2563eb' }}>Question {index + 1}</Text>
                     <TouchableOpacity
-                      className="bg-red-500 px-2 py-1 rounded"
+                      style={{ backgroundColor: '#ef4444', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}
                       onPress={() => deleteQuestion(q.id)}
+                      activeOpacity={0.8}
                     >
-                      <Text className="text-white text-xs">Delete</Text>
+                      <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Delete</Text>
                     </TouchableOpacity>
                   </View>
-                  <Text className="text-sm text-gray-800 mb-2">
-                    {q.question}
-                  </Text>
+                  <Text style={{ fontSize: 14, color: '#1e293b', marginBottom: 4 }}>{q.question}</Text>
                   {q.options.map((option: string, optIndex: number) => (
                     <Text
                       key={optIndex}
-                      className={`text-xs ml-2 ${
-                        optIndex === q.correctAnswer
-                          ? "text-green-600 font-bold"
-                          : "text-gray-600"
-                      }`}
+                      style={{ fontSize: 13, marginLeft: 8, color: optIndex === q.correctAnswer ? '#16a34a' : '#64748b', fontWeight: optIndex === q.correctAnswer ? '700' : '500' }}
                     >
                       {String.fromCharCode(65 + optIndex)}. {option}
-                      {optIndex === q.correctAnswer && " ✓"}
+                      {optIndex === q.correctAnswer && ' ✓'}
                     </Text>
                   ))}
                 </View>
@@ -250,130 +242,72 @@ const CreateQuizScreen = () => {
             </View>
           )}
 
-          <View className="bg-white rounded-lg p-4 shadow-sm">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Add New Question
-            </Text>
+          {/* Add New Question Card */}
+          <View style={{ backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 18, padding: 18, shadowColor: '#2563eb', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#1e293b', marginBottom: 10 }}>Add New Question</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg p-3 mb-3 text-base h-20"
+              style={{ borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 12, padding: 12, marginBottom: 12, fontSize: 16, backgroundColor: '#f8fafc', color: '#1e293b', minHeight: 64, textAlignVertical: 'top' }}
               placeholder="Enter your question here..."
               value={questionText}
               onChangeText={setQuestionText}
               multiline
-              textAlignVertical="top"
+              placeholderTextColor="#94a3b8"
             />
-            <Text className="text-sm font-medium text-gray-700 mb-2">
-              Answer Options:
-            </Text>
-            <View className="flex-row items-center mb-2">
-              <TouchableOpacity
-                className={`w-6 h-6 rounded-full border-2 mr-3 items-center justify-center ${
-                  correctAnswer === 0
-                    ? "border-green-500 bg-green-500"
-                    : "border-gray-400"
-                }`}
-                onPress={() => setCorrectAnswer(0)}
-              >
-                {correctAnswer === 0 && (
-                  <Text className="text-white text-xs">✓</Text>
-                )}
-              </TouchableOpacity>
-              <Text className="w-6 text-sm font-medium text-gray-700 mr-2">
-                A.
-              </Text>
-              <TextInput
-                className="flex-1 border border-gray-300 rounded p-2 text-sm"
-                placeholder="Option A"
-                value={optionA}
-                onChangeText={setOptionA}
-              />
-            </View>
-            <View className="flex-row items-center mb-2">
-              <TouchableOpacity
-                className={`w-6 h-6 rounded-full border-2 mr-3 items-center justify-center ${
-                  correctAnswer === 1
-                    ? "border-green-500 bg-green-500"
-                    : "border-gray-400"
-                }`}
-                onPress={() => setCorrectAnswer(1)}
-              >
-                {correctAnswer === 1 && (
-                  <Text className="text-white text-xs">✓</Text>
-                )}
-              </TouchableOpacity>
-              <Text className="w-6 text-sm font-medium text-gray-700 mr-2">
-                B.
-              </Text>
-              <TextInput
-                className="flex-1 border border-gray-300 rounded p-2 text-sm"
-                placeholder="Option B"
-                value={optionB}
-                onChangeText={setOptionB}
-              />
-            </View>
-            <View className="flex-row items-center mb-2">
-              <TouchableOpacity
-                className={`w-6 h-6 rounded-full border-2 mr-3 items-center justify-center ${
-                  correctAnswer === 2
-                    ? "border-green-500 bg-green-500"
-                    : "border-gray-400"
-                }`}
-                onPress={() => setCorrectAnswer(2)}
-              >
-                {correctAnswer === 2 && (
-                  <Text className="text-white text-xs">✓</Text>
-                )}
-              </TouchableOpacity>
-              <Text className="w-6 text-sm font-medium text-gray-700 mr-2">
-                C.
-              </Text>
-              <TextInput
-                className="flex-1 border border-gray-300 rounded p-2 text-sm"
-                placeholder="Option C (optional)"
-                value={optionC}
-                onChangeText={setOptionC}
-              />
-            </View>
-            <View className="flex-row items-center mb-4">
-              <TouchableOpacity
-                className={`w-6 h-6 rounded-full border-2 mr-3 items-center justify-center ${
-                  correctAnswer === 3
-                    ? "border-green-500 bg-green-500"
-                    : "border-gray-400"
-                }`}
-                onPress={() => setCorrectAnswer(3)}
-              >
-                {correctAnswer === 3 && (
-                  <Text className="text-white text-xs">✓</Text>
-                )}
-              </TouchableOpacity>
-              <Text className="w-6 text-sm font-medium text-gray-700 mr-2">
-                D.
-              </Text>
-              <TextInput
-                className="flex-1 border border-gray-300 rounded p-2 text-sm"
-                placeholder="Option D (optional)"
-                value={optionD}
-                onChangeText={setOptionD}
-              />
-            </View>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: '#334155', marginBottom: 6 }}>Answer Options:</Text>
+            {[0, 1, 2, 3].map((idx) => (
+              <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: idx === 3 ? 16 : 8 }}>
+                <TouchableOpacity
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: 13,
+                    borderWidth: 2,
+                    borderColor: correctAnswer === idx ? '#22c55e' : '#cbd5e1',
+                    backgroundColor: correctAnswer === idx ? '#22c55e' : '#fff',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                  }}
+                  onPress={() => setCorrectAnswer(idx)}
+                  activeOpacity={0.85}
+                >
+                  {correctAnswer === idx && (
+                    <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>✓</Text>
+                  )}
+                </TouchableOpacity>
+                <Text style={{ width: 22, fontSize: 15, fontWeight: '600', color: '#334155', marginRight: 8 }}>{String.fromCharCode(65 + idx)}.</Text>
+                <TextInput
+                  style={{ flex: 1, borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 8, fontSize: 15, backgroundColor: '#f8fafc', color: '#1e293b' }}
+                  placeholder={`Option ${String.fromCharCode(65 + idx)}${idx > 1 ? ' (optional)' : ''}`}
+                  value={idx === 0 ? optionA : idx === 1 ? optionB : idx === 2 ? optionC : optionD}
+                  onChangeText={
+                    idx === 0
+                      ? setOptionA
+                      : idx === 1
+                      ? setOptionB
+                      : idx === 2
+                      ? setOptionC
+                      : setOptionD
+                  }
+                  placeholderTextColor="#94a3b8"
+                />
+              </View>
+            ))}
             <TouchableOpacity
-              className="bg-blue-500 rounded-lg py-3 items-center"
+              style={{ backgroundColor: '#2563eb', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 2, shadowColor: '#2563eb', shadowOpacity: 0.10, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}
               onPress={addQuestion}
+              activeOpacity={0.85}
             >
-              <Text className="text-white font-semibold text-base">
-                + Add Question
-              </Text>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>+ Add Question</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity
-            className="bg-green-600 rounded-lg py-4 items-center mb-6"
+            style={{ backgroundColor: '#22c55e', borderRadius: 14, paddingVertical: 18, alignItems: 'center', marginBottom: 18, shadowColor: '#22c55e', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}
             onPress={publishQuiz}
+            activeOpacity={0.85}
           >
-            <Text className="text-white font-bold text-lg">
-              🚀 Publish Quiz
-            </Text>
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18, letterSpacing: 0.5 }}>🚀 Publish Quiz</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

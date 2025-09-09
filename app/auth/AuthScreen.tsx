@@ -9,10 +9,11 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { ID } from "react-native-appwrite";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,8 +22,22 @@ import { account } from "../../utils/appwrite-config";
 const { width } = Dimensions.get("window");
 
 // Move components outside to prevent re-creation
+import type { KeyboardTypeOptions } from "react-native";
+type InputFieldProps = {
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  secureTextEntry?: boolean;
+  error?: string;
+  showToggle?: boolean;
+  onToggleShow?: () => void;
+  showValue?: boolean;
+  keyboardType?: KeyboardTypeOptions;
+  icon?: React.ReactNode;
+};
+
 const InputField = React.memo(
-  React.forwardRef(
+  React.forwardRef<TextInput, InputFieldProps>(
     (
       {
         placeholder,
@@ -34,29 +49,49 @@ const InputField = React.memo(
         onToggleShow,
         showValue = false,
         keyboardType = "default",
+        icon,
       },
       ref
     ) => {
       const handleChangeText = useCallback(
-        (text) => {
+        (text: string) => {
           onChangeText(text);
-          if (ref?.current) {
-            console.log("Focus check:", ref.current.isFocused());
-          }
         },
-        [onChangeText, ref]
+        [onChangeText]
       );
 
       return (
-        <View className="mb-4">
-          <View className="relative">
+        <View style={{ marginBottom: 18 }}>
+          <View style={{ position: "relative" }}>
+            <View style={{
+              position: "absolute",
+              left: 16,
+              top: 0,
+              bottom: 0,
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 2,
+              flexDirection: "row"
+            }}>
+              {icon}
+            </View>
             <TextInput
               ref={ref}
-              className={`border ${
-                error ? "border-red-500" : "border-gray-300"
-              } 
-                         p-4 rounded-xl bg-white shadow-sm text-gray-900
-                         focus:border-blue-500 focus:bg-white`}
+              style={{
+                borderWidth: 1,
+                borderColor: error ? "#ef4444" : "#d1d5db",
+                paddingVertical: 14,
+                paddingLeft: 48,
+                paddingRight: showToggle ? 70 : 16,
+                borderRadius: 18,
+                backgroundColor: "rgba(255,255,255,0.85)",
+                color: "#111827",
+                fontSize: 16,
+                shadowColor: "#000",
+                shadowOpacity: 0.06,
+                shadowRadius: 6,
+                shadowOffset: { width: 0, height: 2 },
+              }}
               placeholder={placeholder}
               placeholderTextColor="#9CA3AF"
               value={value}
@@ -68,17 +103,17 @@ const InputField = React.memo(
             />
             {showToggle && (
               <TouchableOpacity
-                className="absolute right-4 top-4"
+                style={{ position: "absolute", right: 16, top: 14 }}
                 onPress={onToggleShow}
               >
-                <Text className="text-blue-600 font-medium">
+                <Text style={{ color: "#2563eb", fontWeight: "500" }}>
                   {showValue ? "Hide" : "Show"}
                 </Text>
               </TouchableOpacity>
             )}
           </View>
           {error && (
-            <Text className="text-red-500 text-sm mt-1 ml-1">{error}</Text>
+            <Text style={{ color: "#ef4444", fontSize: 13, marginTop: 4, marginLeft: 4 }}>{error}</Text>
           )}
         </View>
       );
@@ -86,8 +121,15 @@ const InputField = React.memo(
   )
 );
 
+type CustomButtonProps = {
+  title: string;
+  onPress: () => void;
+  variant?: "primary" | "secondary";
+  disabled?: boolean;
+};
+
 const CustomButton = React.memo(
-  ({ title, onPress, variant = "primary", disabled = false }) => (
+  ({ title, onPress, variant = "primary", disabled = false }: CustomButtonProps) => (
     <TouchableOpacity
       className={`py-4 px-6 rounded-xl mb-3 shadow-sm
                  ${
@@ -121,7 +163,12 @@ const CustomButton = React.memo(
   )
 );
 
-const AuthScreen = ({ onAuthComplete, onLogout }) => {
+type AuthScreenProps = {
+  onAuthComplete?: () => void;
+  onLogout?: () => void;
+};
+
+const AuthScreen = ({ onAuthComplete = () => {}, onLogout = () => {} }: AuthScreenProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -129,7 +176,7 @@ const AuthScreen = ({ onAuthComplete, onLogout }) => {
   const [isSignup, setIsSignup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const router = useRouter();
@@ -146,6 +193,11 @@ const AuthScreen = ({ onAuthComplete, onLogout }) => {
           await AsyncStorage.setItem("userId", user.$id); // Store userId
           await AsyncStorage.setItem("userRole", user.prefs?.role || "student");
           setIsLoggedIn(true);
+          // Redirect to dashboard immediately if session exists
+          const redirectPath = user.prefs?.role === "teacher" ? "/(tabs)" : "/(tabs)/StudentDashboard";
+          router.replace(redirectPath);
+        } else {
+          setIsLoggedIn(false);
         }
       } catch (error) {
         console.log("No active session:", error);
@@ -157,7 +209,7 @@ const AuthScreen = ({ onAuthComplete, onLogout }) => {
   }, []);
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: Record<string, string> = {};
 
     if (!email.trim()) {
       newErrors.email = "Email is required";
@@ -188,6 +240,12 @@ const AuthScreen = ({ onAuthComplete, onLogout }) => {
     setErrors({});
 
     try {
+      // Always clear all sessions and storage before login attempt
+      try {
+        await account.deleteSessions?.();
+      } catch {}
+      await AsyncStorage.multiRemove(["userEmail", "userId", "userRole"]);
+
       let user;
       if (isSignup) {
         user = await account.create(ID.unique(), email, password, name);
@@ -210,20 +268,58 @@ const AuthScreen = ({ onAuthComplete, onLogout }) => {
 
       setIsLoggedIn(true);
 
-      // Redirect based on role
+      // On web, force a reload to ensure session/cookies are synced
+      if (typeof window !== 'undefined' && window.location) {
+        setTimeout(() => window.location.reload(), 500);
+        return;
+      }
+      // Redirect based on role (native)
       const redirectPath =
         user.prefs?.role === "teacher"
-          ? "/(tabs)/"
+          ? "/(tabs)"
           : "/(tabs)/StudentDashboard";
       router.replace(redirectPath);
       onAuthComplete();
-    } catch (error) {
+    } catch (error: any) {
       console.log("Auth error:", error);
       let errorMessage = "An error occurred during authentication";
-      if (error.message) errorMessage = error.message;
-      else if (error.code === 401) errorMessage = "Invalid email or password";
-      else if (error.code === 409)
-        errorMessage = "An account with this email already exists";
+      // Handle Appwrite session already active error
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        (error.message?.includes("session is active") || error.message?.includes("prohibited when a session is active"))
+      ) {
+        try {
+          // Try to get the user; if it works, redirect
+          const user = await account.get();
+          await AsyncStorage.setItem("userId", user.$id);
+          await AsyncStorage.setItem("userRole", user.prefs?.role || "student");
+          setIsLoggedIn(true);
+          const redirectPath = user.prefs?.role === "teacher" ? "/(tabs)" : "/(tabs)/StudentDashboard";
+          router.replace(redirectPath);
+          onAuthComplete();
+          return;
+        } catch (sessionError: any) {
+          // If session is invalid (401), force delete all sessions and clear storage
+          // Always try to delete all sessions, clear storage, and reload the page (web) to reset cookies
+          try {
+            await account.deleteSessions?.();
+          } catch {}
+          await AsyncStorage.multiRemove(["userEmail", "userId", "userRole"]);
+          setIsLoggedIn(false);
+          errorMessage = "Session was invalid and has been cleared. Please log in again.";
+          // On web, force a reload to clear Appwrite cookies
+          if (typeof window !== 'undefined' && window.location) {
+            setTimeout(() => window.location.reload(), 500);
+          }
+        }
+      } else if (typeof error === "object" && error !== null) {
+        const err = error as { message?: string; code?: number };
+        if (err.message) errorMessage = err.message;
+        else if (err.code === 401) errorMessage = "Invalid email or password";
+        else if (err.code === 409)
+          errorMessage = "An account with this email already exists";
+      }
       Alert.alert("Authentication Error", errorMessage);
     } finally {
       setIsLoading(false);
@@ -232,7 +328,7 @@ const AuthScreen = ({ onAuthComplete, onLogout }) => {
 
   const handleLogout = async () => {
     try {
-      await account.deleteSession("current");
+      await account.deleteSessions?.();
     } catch (error) {
       console.log("Logout error:", error);
     } finally {
@@ -243,129 +339,164 @@ const AuthScreen = ({ onAuthComplete, onLogout }) => {
       setName("");
       setIsSignup(false);
       setErrors({});
+      // On web, only reload if session/cookies are not cleared (fallback)
+      if (typeof window !== 'undefined' && window.location) {
+        // Try to check if session is still active
+        try {
+          await account.get();
+          // If still logged in, force reload
+          setTimeout(() => window.location.reload(), 500);
+          return;
+        } catch {}
+      }
       onLogout();
     }
   };
 
-  return (
-    <SafeAreaView className="flex-1 bg-gradient-to-b from-blue-50 to-white">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
-        className="flex-1"
-      >
-        <View className="flex-1 justify-center px-5">
-          <View className="items-center mb-8">
-            <View className="w-20 h-20 bg-blue-600 rounded-full items-center justify-center mb-4">
-              <Text className="text-white text-2xl font-bold">
-                {isSignup ? "👋" : "🔐"}
+  // Only show login/signup form if not logged in (no session)
+  if (!isLoggedIn) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#e0e7ff" }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+          style={{ flex: 1 }}
+        >
+          <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 20 }}>
+            {/* Background gradient */}
+            <View style={{
+              ...(StyleSheet.absoluteFillObject as object),
+              zIndex: -1,
+              backgroundColor: "#e0e7ff"
+            }}>
+              <View style={{
+                flex: 1,
+                backgroundColor: "#e0e7ff",
+                opacity: 0.9
+              }} />
+            </View>
+            {/* Logo */}
+            <View style={{ alignItems: "center", marginBottom: 32 }}>
+              <View style={{ width: 80, height: 80, borderRadius: 24, marginBottom: 12, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ fontSize: 44, color: "#2563eb" }}>🔐</Text>
+              </View>
+              <Text style={{ fontSize: 32, fontWeight: "bold", color: "#1e293b", marginBottom: 4 }}>
+                {isSignup ? "Create Account" : "Welcome Back"}
+              </Text>
+              <Text style={{ color: "#64748b", textAlign: "center", fontSize: 16 }}>
+                {isSignup
+                  ? "Join us and start your learning journey"
+                  : "Sign in to continue your progress"}
               </Text>
             </View>
-            <Text className="text-3xl font-bold text-gray-900 mb-2">
-              {isSignup ? "Create Account" : "Welcome Back"}
-            </Text>
-            <Text className="text-gray-600 text-center">
-              {isSignup
-                ? "Join us and start your learning journey"
-                : "Sign in to continue your progress"}
-            </Text>
-          </View>
-
-          <View className="bg-white rounded-2xl p-6 shadow-lg mb-6">
-            <InputField
-              ref={emailRef}
-              placeholder="Email address"
-              value={email}
-              onChangeText={setEmail}
-              error={errors.email}
-              keyboardType="email-address"
-            />
-            {isSignup && (
+            {/* Glassmorphism Card */}
+            <View style={{
+              backgroundColor: "rgba(255,255,255,0.85)",
+              borderRadius: 28,
+              padding: 24,
+              shadowColor: "#000",
+              shadowOpacity: 0.08,
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: 8 },
+              marginBottom: 24,
+            }}>
               <InputField
-                ref={nameRef}
-                placeholder="Full name"
-                value={name}
-                onChangeText={setName}
-                error={errors.name}
+                ref={emailRef}
+                placeholder="Email address"
+                value={email}
+                onChangeText={setEmail}
+                error={errors.email}
+                keyboardType="email-address"
+                icon={<Text style={{ fontSize: 20, color: "#2563eb" }}>📧</Text>}
               />
-            )}
-            <InputField
-              ref={passwordRef}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={true}
-              error={errors.password}
-              showToggle={true}
-              onToggleShow={() => setShowPassword(!showPassword)}
-              showValue={showPassword}
-            />
-            {isSignup && (
-              <View className="mb-4">
-                <Text className="text-gray-700 font-medium mb-2">Role</Text>
-                <View className="border border-gray-300 rounded-xl bg-white overflow-hidden">
-                  <Picker
-                    selectedValue={role}
-                    onValueChange={setRole}
-                    style={{ height: 50 }}
-                  >
-                    <Picker.Item label="👨‍🎓 Student" value="student" />
-                    <Picker.Item label="👩‍🏫 Teacher" value="teacher" />
-                  </Picker>
+              {isSignup && (
+                <InputField
+                  ref={nameRef}
+                  placeholder="Full name"
+                  value={name}
+                  onChangeText={setName}
+                  error={errors.name}
+                  icon={<Text style={{ fontSize: 20, color: "#2563eb" }}>👤</Text>}
+                />
+              )}
+              <InputField
+                ref={passwordRef}
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={true}
+                error={errors.password}
+                showToggle={true}
+                onToggleShow={() => setShowPassword(!showPassword)}
+                showValue={showPassword}
+                icon={<Text style={{ fontSize: 20, color: "#2563eb" }}>🔒</Text>}
+              />
+              {isSignup && (
+                <View style={{ marginBottom: 18 }}>
+                  <Text style={{ color: "#334155", fontWeight: "500", marginBottom: 8 }}>Role</Text>
+                  <View style={{ borderWidth: 1, borderColor: "#d1d5db", borderRadius: 18, backgroundColor: "#fff", overflow: "hidden" }}>
+                    <Picker
+                      selectedValue={role}
+                      onValueChange={setRole}
+                      style={{ height: 50 }}
+                    >
+                      <Picker.Item label="👨‍🎓 Student" value="student" />
+                      <Picker.Item label="👩‍🏫 Teacher" value="teacher" />
+                    </Picker>
+                  </View>
                 </View>
+              )}
+              <CustomButton
+                title={isSignup ? "Create Account" : "Sign In"}
+                onPress={handleAuth}
+                disabled={isLoading}
+              />
+            </View>
+            {isLoggedIn && (
+              <View style={{ alignItems: "center" }}>
+                <CustomButton
+                  title="Logout"
+                  onPress={handleLogout}
+                  variant="primary"
+                />
               </View>
             )}
-            <CustomButton
-              title={isSignup ? "Create Account" : "Sign In"}
-              onPress={handleAuth}
-              disabled={isLoading}
-            />
-          </View>
-
-          {isLoggedIn && (
-            <View className="items-center">
-              <CustomButton
-                title="Logout"
-                onPress={handleLogout}
-                variant="primary"
-              />
-            </View>
-          )}
-
-          {!isLoggedIn && (
-            <View className="items-center">
-              <Text className="text-gray-600 mb-2">
-                {isSignup
-                  ? "Already have an account?"
-                  : "Don't have an account?"}
-              </Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setIsSignup(!isSignup);
-                  setErrors({});
-                  setEmail("");
-                  setPassword("");
-                  setName("");
-                }}
-                disabled={isLoading}
-              >
-                <Text className="text-blue-600 font-semibold text-lg">
-                  {isSignup ? "Sign In" : "Sign Up"}
+            {!isLoggedIn && (
+              <View style={{ alignItems: "center" }}>
+                <Text style={{ color: "#64748b", marginBottom: 8, fontSize: 16 }}>
+                  {isSignup
+                    ? "Already have an account?"
+                    : "Don't have an account?"}
                 </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsSignup(!isSignup);
+                    setErrors({});
+                    setEmail("");
+                    setPassword("");
+                    setName("");
+                  }}
+                  disabled={isLoading}
+                >
+                  <Text style={{ color: "#2563eb", fontWeight: "bold", fontSize: 18 }}>
+                    {isSignup ? "Sign In" : "Sign Up"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            <View style={{ marginTop: 32, alignItems: "center" }}>
+              <Text style={{ color: "#94a3b8", fontSize: 13, textAlign: "center" }}>
+                By continuing, you agree to our Terms of Service
+                {"\n"}and Privacy Policy
+              </Text>
             </View>
-          )}
-
-          <View className="mt-8 items-center">
-            <Text className="text-gray-500 text-sm text-center">
-              By continuing, you agree to our Terms of Service
-              {"\n"}and Privacy Policy
-            </Text>
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
+  // If logged in, don't render anything (redirect handled in useEffect)
+  return null;
 };
 
 export default AuthScreen;

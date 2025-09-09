@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, AppState, View } from "react-native";
 import AuthScreen from "../app/auth/AuthScreen";
 import { account } from "../utils/appwrite-config";
@@ -94,7 +94,7 @@ export default function RootLayout() {
 
       // Navigate to appropriate screen based on role
       const redirectPath =
-        role === "teacher" ? "/(tabs)/" : "/(tabs)/StudentDashboard";
+        role === "teacher" ? "/(tabs)" : "/(tabs)/StudentDashboard";
       router.replace(redirectPath);
     } catch (error) {
       console.error("Auth complete error:", error);

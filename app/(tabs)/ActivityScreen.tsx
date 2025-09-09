@@ -1,8 +1,10 @@
 // ActivityScreen.tsx - Updated to use real user names from auth
+import { Ionicons } from '@expo/vector-icons';
 import { Query } from "appwrite";
+import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { RefreshControl, ScrollView, Text, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ActivityItem from "../../components/ActivityItem";
 import { DATABASE_ID, databases, QUIZ_COLLECTION_ID } from "../../utils/appwrite-config";
@@ -16,6 +18,22 @@ type Activity = {
   color: string;
   timestamp?: Date;
 };
+
+const styles = StyleSheet.create({
+  summaryCard: {
+    backgroundColor: 'rgba(255,255,255,0.65)',
+    borderRadius: 22,
+    padding: 18,
+    shadowColor: '#2563eb',
+    shadowOpacity: 0.10,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    borderWidth: 1,
+    borderColor: 'rgba(203,213,225,0.13)',
+    marginBottom: 0,
+    overflow: 'hidden',
+  },
+});
 
 const ActivityScreen = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -169,32 +187,89 @@ const ActivityScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f1f5f9" }}>
+      {/* Gradient Header - overlays activity list with floating effect */}
+      <View style={{ position: "relative", marginBottom: 18 }}>
+        <LinearGradient
+          colors={["#2563eb", "#60a5fa"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            height: 120,
+            borderBottomLeftRadius: 32,
+            borderBottomRightRadius: 32,
+            justifyContent: "center",
+            shadowColor: "#2563eb",
+            shadowOpacity: 0.10,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 6 },
+            elevation: 6,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              height: 90,
+              paddingHorizontal: 24,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "rgba(255,255,255,0.18)",
+                borderRadius: 16,
+                padding: 8,
+                marginRight: 12,
+              }}
+            >
+              <Ionicons name="time-outline" size={32} color="#fff" />
+            </View>
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 28,
+                fontWeight: "bold",
+                letterSpacing: 0.5,
+              }}
+            >
+              Recent Activity
+            </Text>
+          </View>
+        </LinearGradient>
+      </View>
+      
       <ScrollView
-        className="flex-1 bg-gray-50"
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 32 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <Text className="text-3xl font-bold text-gray-900 px-4 py-5">
-          Recent Activity
-        </Text>
-
         {isLoading ? (
-          <View className="px-4">
-            <Text className="text-gray-500">Loading activities...</Text>
+          <View style={{ paddingHorizontal: 16 }}>
+            <Text style={{ color: "#64748b", fontSize: 16 }}>
+              Loading activities...
+            </Text>
           </View>
         ) : activities.length === 0 ? (
-          <View className="px-4 py-8 items-center">
-            <Text className="text-lg font-medium text-gray-500">
+          <View
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 32,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: "500", color: "#64748b" }}>
               No recent activity
             </Text>
-            <Text className="text-gray-400 text-center mt-2">
+            <Text
+              style={{ color: "#94a3b8", textAlign: "center", marginTop: 8 }}
+            >
               Activity will appear here when students interact with quizzes
             </Text>
           </View>
         ) : (
-          <View>
+          <View style={{ paddingHorizontal: 20, marginTop: 5, zIndex: 1 }}>
             {activities.map((activity) => (
               <ActivityItem
                 key={activity.id}
@@ -207,12 +282,19 @@ const ActivityScreen = () => {
             ))}
 
             {/* Activity Summary */}
-            <View className="px-4 py-6 mt-4">
-              <View className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <Text className="text-lg font-semibold text-gray-900 mb-2">
+            <View style={{ marginTop: 24 }}>
+              <View style={styles.summaryCard}>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: "600",
+                    color: "#1e293b",
+                    marginBottom: 6,
+                  }}
+                >
                   Activity Summary
                 </Text>
-                <Text className="text-gray-600">
+                <Text style={{ color: "#64748b", fontSize: 15 }}>
                   {
                     activities.filter((a) => a.action.includes("completed"))
                       .length

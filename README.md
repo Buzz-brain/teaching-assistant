@@ -1,77 +1,160 @@
-# Welcome to your Expo app 👋
+# Teaching Assistant App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> A modern, cross-platform teaching assistant app for students and teachers, built with Expo, React Native, and Appwrite.
 
-## Get started
+---
 
-1. Install dependencies
+## 🚀 Overview
 
-   ```bash
-   npm install
-   ```
+Teaching Assistant is a sleek, professional, and feature-rich mobile/web app designed to streamline classroom management, quizzes, schedules, messaging, and more for both students and teachers. Built with the latest technologies, it offers a seamless experience across Android, iOS, and web.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## ✨ Features
 
-In the output, you'll find options to open the app in a
+- **Authentication**: Secure login/signup with session persistence and robust session recovery.
+- **Role-based Dashboards**: Distinct experiences for students and teachers.
+- **Quizzes**: Create, take, and manage quizzes with real-time status (pending, in-progress, completed).
+- **Courses**: View and manage enrolled courses.
+- **Schedules**: Personalized class schedules for students and teachers.
+- **Messaging**: Send and receive messages between users.
+- **Notifications**: Stay updated with real-time notifications.
+- **Activity Feed**: Track recent activities and progress.
+- **Modern UI/UX**: Beautiful, responsive design with gradients, glassmorphism, and smooth navigation.
+- **Cross-Platform**: Runs on Android, iOS, and web with a single codebase.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🛠️ Tech Stack
 
-## Get a fresh project
+- **Framework**: Expo (React Native, React Native Web)
+- **Backend**: Appwrite (Authentication, Database, Storage)
+- **UI**: NativeWind, Expo Vector Icons, LinearGradient
+- **State & Routing**: React Context, Expo Router
+- **Storage**: AsyncStorage, Appwrite
+- **Other**: TypeScript, EAS Build/Deploy, PostCSS, ESLint
 
-When you're ready, run:
+---
 
-```bash
-npm run reset-project
+## 📁 App Structure
+
+```
+app/
+  (tabs)/
+    ActivityScreen.tsx         # Activity feed
+    CoursesScreen.tsx          # Courses list
+    HelpScreen.tsx             # Help & support
+    MoreScreen.tsx             # Settings, profile, etc.
+    QuizScreen.tsx             # Quiz dashboard
+    ScheduleScreen.tsx         # Student schedule
+    ScheduleScreenTeacher.tsx  # Teacher schedule
+    StudentDashboard.tsx       # Student dashboard
+    ...
+  auth/
+    AuthScreen.tsx             # Login/Signup
+  messages/
+    SendMessage.tsx            # Messaging
+  notification/
+    NotificationsScreen.tsx    # Notifications
+  quiz/
+    CreateQuiz.tsx             # Quiz creation (teacher)
+    WriteQuiz.tsx              # Take quiz (student)
+  schedule/
+    ScheduleCreateScreen.tsx   # Create schedule (teacher)
+components/
+  ActivityItem.tsx, CourseItem.tsx, ProgressBar.tsx, StatCard.tsx
+contexts/
+  AuthContext.tsx, RoleContext.tsx
+utils/
+  appwrite-config.ts           # Appwrite setup
+  ...
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🖥️ Main Screens & Functionality
 
-To learn more about developing your project with Expo, look at the following resources:
+- **Authentication**: Email/password login, signup, auto-login, session recovery.
+- **Student Dashboard**: Overview of quizzes, courses, schedule, and recent activity.
+- **Teacher Dashboard**: Manage quizzes, schedules, and view student progress.
+- **Quiz Management**: Create, edit, take, and review quizzes. Real-time status and results.
+- **Course Management**: Browse and view enrolled courses.
+- **Schedule**: Personalized class schedules for students and teachers.
+- **Messaging**: Direct messaging between users.
+- **Notifications**: Real-time updates for important events.
+- **Help & Support**: Submit questions or issues to teachers/admins.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## ⚡ Getting Started
 
-Join our community of developers creating universal apps.
+### 1. Clone the Repository
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+ git clone https://github.com/Buzz-brain/teaching-assistant.git
+ cd teaching-assistant
+```
 
-## Deploy to Render (web)
+### 2. Install Dependencies
 
-These steps publish the web build (static) to Render as a Static Site. The project already includes a `build` script that runs `expo export:web` and a postbuild helper to create a `200.html` SPA fallback.
+```bash
+npm install
+```
+
+### 3. Configure Environment
+
+Set your Appwrite endpoint and project ID in your environment variables or `.env` file:
+
+```
+EXPO_PUBLIC_APPWRITE_ENDPOINT=your-appwrite-endpoint
+EXPO_PUBLIC_APPWRITE_PROJECT_ID=your-appwrite-project-id
+```
+
+### 4. Run the App
+
+- **Start Metro Bundler:**
+  ```bash
+  npx expo start
+  ```
+- **Android:** `npm run android`
+- **iOS:** `npm run ios`
+- **Web:** `npm run web`
+
+---
+
+## 🚢 Deployment
+
+### Deploy to Web (Render)
 
 1. Push your repo to GitHub/GitLab/Bitbucket and link it to Render.
-
-2. In Render, create a new "Static Site" service and set the following:
-   - Build Command: npm ci && npm run build
-   - Publish Directory: web
+2. In Render, create a new "Static Site" service:
+   - Build Command: `npm ci && npm run build`
+   - Publish Directory: `web`
    - Branch: your repo branch (e.g., main)
+3. Add environment variables:
+   - `EXPO_PUBLIC_APPWRITE_ENDPOINT`
+   - `EXPO_PUBLIC_APPWRITE_PROJECT_ID`
+4. Start the deploy. Render will build and export the static web app.
+5. Configure CORS and allowed origins in Appwrite for your Render URL.
 
-3. Add environment variables in Render (Environment => Environment Variables):
-   - EXPO_PUBLIC_APPWRITE_ENDPOINT — your Appwrite endpoint (e.g., https://nyc.cloud.appwrite.io/v1)
-   - EXPO_PUBLIC_APPWRITE_PROJECT_ID — your Appwrite project id
+---
 
-4. (Optional) If you rely on any other runtime secrets (for server-only tasks), add them here.
+## 🤝 Contributing
 
-5. Start the deploy. Render will run the build command, which exports a static web site into the `web/` folder and the `scripts/postbuild.js` script creates `web/200.html` for SPA routing.
+Contributions, bug reports, and feature requests are welcome! Please open an issue or submit a pull request.
 
-6. Verify:
-   - Visit the Render URL. Navigate to app routes (e.g., /quiz) — they should work thanks to `200.html` fallback.
-   - If Appwrite integration is required, test login and DB interactions; make sure CORS and allowed origins are configured in your Appwrite console to include your Render URL.
+---
 
-Troubleshooting:
-- If the build fails due to native modules, ensure `expo export:web` is supported for your Expo SDK version (this project targets Expo ~53). Consider building with `expo prebuild`/EAS for native, but for a static web build `expo export:web` should work.
-- If Appwrite calls fail from the browser, configure Appwrite CORS and project settings.
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 🙏 Acknowledgements
+
+- [Expo](https://expo.dev)
+- [React Native](https://reactnative.dev/)
+- [Appwrite](https://appwrite.io/)
+- [NativeWind](https://www.nativewind.dev/)
+- [All contributors & the open source community](https://github.com/Buzz-brain/teaching-assistant/graphs/contributors)

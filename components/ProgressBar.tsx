@@ -1,7 +1,11 @@
-import React from "react";
 import { View } from "react-native";
 
-const ProgressBar = ({ percentage, color }) => {
+interface ProgressBarProps {
+  percentage: number;
+  color: string;
+}
+
+const ProgressBar = ({ percentage, color }: ProgressBarProps) => {
   return (
     <View className="h-2 bg-gray-200 rounded-full">
       <View

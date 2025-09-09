@@ -1,14 +1,16 @@
 // QuizScreen.tsx - Fixed version with proper status handling
 import { Feather as Icon } from "@expo/vector-icons";
 import { Query } from "appwrite";
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-    RefreshControl,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DATABASE_ID, databases, QUIZ_COLLECTION_ID } from "../../utils/appwrite-config";
@@ -27,127 +29,161 @@ type Quiz = {
 
 const AvailableQuizCard = ({ quiz, onPress }: { quiz: Quiz; onPress: (quiz: Quiz) => void }) => {
   const getDifficultyLevel = (questionCount: number) => {
-    if (questionCount <= 10) return { level: "Easy", color: "green" };
-    if (questionCount <= 20) return { level: "Medium", color: "yellow" };
-    return { level: "Hard", color: "red" };
+    if (questionCount <= 10) return { level: "Easy", color: "#22c55e", bg: "#dcfce7" };
+    if (questionCount <= 20) return { level: "Medium", color: "#eab308", bg: "#fef9c3" };
+    return { level: "Hard", color: "#ef4444", bg: "#fee2e2" };
   };
-
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case "pending":
-        return { text: "Not Started", color: "orange", icon: "circle" };
+        return { text: "Not Started", color: "#f59e42", icon: "circle" };
       case "in_progress":
-        return { text: "In Progress", color: "blue", icon: "play-circle" };
+        return { text: "In Progress", color: "#2563eb", icon: "play-circle" };
       case "completed":
-        return { text: "Completed", color: "green", icon: "check-circle" };
+        return { text: "Completed", color: "#22c55e", icon: "check-circle" };
       default:
-        return { text: "Not Started", color: "orange", icon: "circle" };
+        return { text: "Not Started", color: "#f59e42", icon: "circle" };
     }
   };
-
   const difficulty = getDifficultyLevel(quiz.questionCount);
   const statusDisplay = getStatusDisplay(quiz.status);
-
   return (
-    <TouchableOpacity
-      className="bg-white rounded-2xl p-6 mb-4 shadow-sm border border-gray-100"
+    <Pressable
       onPress={() => onPress(quiz)}
+      style={({ pressed }) => [
+        styles.quizCard,
+        pressed && { transform: [{ scale: 0.98 }], opacity: 0.96 },
+      ]}
+      android_ripple={{ color: "#e0e7ff" }}
+      disabled={quiz.status === "completed"}
     >
-      <View className="flex-row items-start justify-between mb-4">
-        <View className="flex-row items-center flex-1">
-          <View className="bg-blue-100 rounded-xl p-3 mr-4">
-            <Icon name="file-text" size={24} color="#3B82F6" />
+      <LinearGradient
+        colors={["#fff", "#f1f5f9"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          marginBottom: 12,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+          <View
+            style={{
+              backgroundColor: "#dbeafe",
+              borderRadius: 16,
+              padding: 10,
+              marginRight: 14,
+            }}
+          >
+            <Icon name="file-text" size={24} color="#2563eb" />
           </View>
-          <View className="flex-1">
-            <Text className="text-xl font-semibold text-gray-900 mb-1">
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                color: "#1e293b",
+                marginBottom: 2,
+              }}
+            >
               {quiz.title}
             </Text>
-            <Text className="text-gray-600">{quiz.course}</Text>
-            <Text className="text-sm text-gray-500 mt-1">
+            <Text style={{ color: "#64748b", fontSize: 15 }}>
+              {quiz.course}
+            </Text>
+            <Text style={{ color: "#94a3b8", fontSize: 13, marginTop: 2 }}>
               Created: {new Date(quiz.createdAt).toLocaleDateString()}
             </Text>
           </View>
         </View>
         <View
-          className={`px-3 py-1 rounded-full ${
-            difficulty.color === "red"
-              ? "bg-red-100"
-              : difficulty.color === "yellow"
-              ? "bg-yellow-100"
-              : "bg-green-100"
-          }`}
+          style={{
+            backgroundColor: difficulty.bg,
+            borderRadius: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+            alignSelf: "flex-start",
+          }}
         >
           <Text
-            className={`text-sm font-medium ${
-              difficulty.color === "red"
-                ? "text-red-800"
-                : difficulty.color === "yellow"
-                ? "text-yellow-800"
-                : "text-green-800"
-            }`}
+            style={{ fontSize: 13, fontWeight: "600", color: difficulty.color }}
           >
             {difficulty.level}
           </Text>
         </View>
       </View>
-
-      <View className="flex-row justify-between mb-6">
-        <View className="flex-row items-center">
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginBottom: 18,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Icon name="file-text" size={16} color="#6B7280" />
-          <Text className="text-gray-600 ml-2">
+          <Text style={{ color: "#64748b", marginLeft: 6, fontSize: 14 }}>
             {quiz.questionCount} Questions
           </Text>
         </View>
-        <View className="flex-row items-center">
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Icon name="clock" size={16} color="#6B7280" />
-          <Text className="text-gray-600 ml-2">{quiz.duration} mins</Text>
+          <Text style={{ color: "#64748b", marginLeft: 6, fontSize: 14 }}>
+            {quiz.duration} mins
+          </Text>
         </View>
-        <View className="flex-row items-center">
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Icon
-            name={statusDisplay.icon}
+            name={statusDisplay.icon as any}
             size={16}
-            color={
-              statusDisplay.color === "orange"
-                ? "#F59E0B"
-                : statusDisplay.color === "blue"
-                ? "#3B82F6"
-                : "#10B981"
-            }
+            color={statusDisplay.color}
           />
           <Text
-            className={`ml-2 text-sm font-medium ${
-              statusDisplay.color === "orange"
-                ? "text-orange-600"
-                : statusDisplay.color === "blue"
-                ? "text-blue-600"
-                : "text-green-600"
-            }`}
+            style={{
+              marginLeft: 6,
+              fontSize: 14,
+              fontWeight: "600",
+              color: statusDisplay.color,
+            }}
           >
             {statusDisplay.text}
           </Text>
         </View>
       </View>
-
-      <TouchableOpacity
-        className={`py-3 rounded-lg ${
-          quiz.status === "completed"
-            ? "bg-gray-400"
-            : quiz.status === "in_progress"
-            ? "bg-blue-500"
-            : "bg-blue-500"
-        }`}
+      <Pressable
         onPress={() => onPress(quiz)}
         disabled={quiz.status === "completed"}
+        style={({ pressed }) => [
+          {
+            backgroundColor:
+              quiz.status === "completed" ? "#d1d5db" : "#2563eb",
+            borderRadius: 12,
+            paddingVertical: 13,
+            marginTop: 2,
+            opacity: pressed ? 0.85 : 1,
+          },
+        ]}
       >
-        <Text className="text-white text-center font-semibold text-lg">
+        <Text
+          style={{
+            color: "#fff",
+            textAlign: "center",
+            fontWeight: "bold",
+            fontSize: 16,
+          }}
+        >
           {quiz.status === "completed"
             ? "Already Completed"
             : quiz.status === "in_progress"
             ? "Continue Quiz"
             : "Start Quiz"}
         </Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
+      </Pressable>
+    </Pressable>
   );
 };
 
@@ -227,8 +263,9 @@ const QuizScreen = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 justify-center items-center">
-        <Text className="text-lg text-gray-600">Loading quizzes...</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' }}>
+        <Icon name="file-text" size={40} color="#2563eb" style={{ marginBottom: 12, opacity: 0.7 }} />
+        <Text style={{ fontSize: 18, color: '#64748b', fontWeight: '500' }}>Loading quizzes...</Text>
       </SafeAreaView>
     );
   }
@@ -238,59 +275,90 @@ const QuizScreen = () => {
   const completedQuizzes = quizzes.filter((q: Quiz) => q.status === "completed");
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f1f5f9' }}>
+      {/* Gradient Header */}
+      <View style={{ position: 'relative', marginBottom: 18 }}>
+        <LinearGradient
+          colors={["#2563eb", "#60a5fa"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ height: 120, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, justifyContent: 'flex-end', paddingHorizontal: 24, paddingBottom: 18, shadowColor: '#2563eb', shadowOpacity: 0.10, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6 }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+            <Icon name="list" size={28} color="#fff" style={{ marginRight: 10 }} />
+            <Text style={{ color: '#fff', fontSize: 28, fontWeight: 'bold', letterSpacing: 0.5 }}>Available Quizzes</Text>
+          </View>
+          <Text style={{ color: '#e0e7ef', fontSize: 15, opacity: 0.85 }}>{pendingQuizzes.length} pending • {inProgressQuizzes.length} in progress • {completedQuizzes.length} completed</Text>
+        </LinearGradient>
+      </View>
       <ScrollView
-        className="flex-1"
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 32 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {/* Header */}
-        <View className="p-4 mb-4">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">
-            Available Quizzes
-          </Text>
-          <Text className="text-gray-600">
-            {pendingQuizzes.length} pending • {inProgressQuizzes.length} in
-            progress • {completedQuizzes.length} completed
-          </Text>
+        {/* Sleek Filter/Sort */}
+        <View style={{ flexDirection: 'row', paddingHorizontal: 16, marginBottom: 18 }}>
+          <Pressable
+            style={({ pressed }) => [{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              paddingHorizontal: 18,
+              paddingVertical: 10,
+              marginRight: 10,
+              borderWidth: 1,
+              borderColor: '#e5e7eb',
+              flexDirection: 'row',
+              alignItems: 'center',
+              opacity: pressed ? 0.85 : 1,
+              shadowColor: '#2563eb',
+              shadowOpacity: 0.06,
+              shadowRadius: 4,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 2,
+            }]}
+          >
+            <Icon name="filter" size={16} color="#6B7280" />
+            <Text style={{ color: '#334155', marginLeft: 8, fontWeight: '500', fontSize: 15 }}>Filter</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              paddingHorizontal: 18,
+              paddingVertical: 10,
+              borderWidth: 1,
+              borderColor: '#e5e7eb',
+              flexDirection: 'row',
+              alignItems: 'center',
+              opacity: pressed ? 0.85 : 1,
+              shadowColor: '#2563eb',
+              shadowOpacity: 0.06,
+              shadowRadius: 4,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 2,
+            }]}
+          >
+            {/* @ts-ignore: sort-desc may not be in Feather types, but is valid in Expo vector icons */}
+            <Icon name="sort-desc" size={16} color="#6B7280" />
+            <Text style={{ color: '#334155', marginLeft: 8, fontWeight: '500', fontSize: 15 }}>Sort</Text>
+          </Pressable>
         </View>
-
-        {/* Filter/Sort Options */}
-        <View className="flex-row px-4 mb-6">
-          <TouchableOpacity className="bg-white px-4 py-2 rounded-lg mr-3 border border-gray-200">
-            <View className="flex-row items-center">
-              <Icon name="filter" size={16} color="#6B7280" />
-              <Text className="text-gray-700 ml-2">Filter</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity className="bg-white px-4 py-2 rounded-lg border border-gray-200">
-            <View className="flex-row items-center">
-              {/* @ts-ignore: sort-desc may not be in Feather types, but is valid in Expo vector icons */}
-              <Icon name="sort-desc" size={16} color="#6B7280" />
-              <Text className="text-gray-700 ml-2">Sort</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
         {/* Available Quizzes */}
-        <View className="px-4 pb-8">
+        <View style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
           {quizzes.length === 0 ? (
-            <View className="bg-white rounded-2xl p-8 items-center">
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 24, padding: 36, alignItems: 'center', shadowColor: '#2563eb', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 3 }}>
               <Icon name="file-text" size={48} color="#9CA3AF" />
-              <Text className="text-lg font-medium text-gray-500 mt-4">
-                No quizzes available
-              </Text>
-              <Text className="text-gray-400 text-center mt-2">
-                Check back later for new quizzes
-              </Text>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: '#64748b', marginTop: 16 }}>No quizzes available</Text>
+              <Text style={{ color: '#94a3b8', textAlign: 'center', marginTop: 8 }}>Check back later for new quizzes</Text>
             </View>
           ) : (
             quizzes.map((quiz) => (
               <AvailableQuizCard
                 key={quiz.id}
                 quiz={quiz}
-                onPress={() => handleStartQuiz(quiz)}
+                onPress={handleStartQuiz}
               />
             ))
           )}
@@ -298,6 +366,24 @@ const QuizScreen = () => {
       </ScrollView>
     </SafeAreaView>
   );
+
 };
+
+const styles = StyleSheet.create({
+  quizCard: {
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderRadius: 22,
+    padding: 18,
+    marginBottom: 18,
+    shadowColor: '#2563eb',
+    shadowOpacity: 0.10,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(203,213,225,0.13)',
+    overflow: 'hidden',
+  },
+});
 
 export default QuizScreen;
